@@ -12,9 +12,19 @@
 
 # Build directories
 target/
+**/target/
+**/target/*
+!**/target/.gitkeep
 build/
 out/
 bin/
+
+# Maven specific
+.mvn/
+mvnw
+mvnw.cmd
+.mvn/wrapper/
+.mvn/wrapper/maven-wrapper.jar
 
 # Log files
 *.log
