@@ -27,8 +27,8 @@ public class RedisCache {
                                 new Jackson2JsonRedisSerializer<>(Object.class)));
         // Custom configurations for different entities
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
-        // Cache configuration for Students
-        cacheConfigurations.put("students",
+        // Cache configuration for Answers
+        cacheConfigurations.put("answers",
                 defaultConfig.serializeValuesWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(
                                 new Jackson2JsonRedisSerializer<>(Answer.class))));
