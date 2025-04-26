@@ -4,7 +4,7 @@ spring:
 
     data:
         mongodb:
-            uri: mongodb://mongo:secret@mongodb:27017/miniappdb?authSource=admin
+            uri: mongodb://mongo:secret@localhost:27017/miniappdb
         redis:
             host: redis
             port: 6379

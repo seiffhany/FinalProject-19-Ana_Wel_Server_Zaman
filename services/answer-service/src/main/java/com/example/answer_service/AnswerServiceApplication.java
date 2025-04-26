@@ -9,7 +9,6 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @SpringBootApplication
 @EnableFeignClients
 @EnableCaching
-@EnableMongoRepositories(basePackages = "com.example.answer_service.repositories")
 public class AnswerServiceApplication {
 
 	public static void main(String[] args) {
