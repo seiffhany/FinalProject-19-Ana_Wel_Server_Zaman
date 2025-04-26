@@ -4,46 +4,61 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.UUID;
 
 @Document("Answer")
-
 public class Answer {
     @Id
     private UUID id;
     private UUID questionID;
     private UUID userId;
     private String content;
-    private boolean isAccepted;
+    private byte[] imageInByte;
+    private boolean isBestAnswer;
     private int upVoteCount;
     private int downVoteCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Queue<Answer> relatedAnswers;
 
     public Answer(){
         this.id = UUID.randomUUID();
+        this.relatedAnswers = new LinkedList<Answer>();
+        this.createdAt = LocalDateTime.now();
     }
 
     public Answer(UUID questionID, UUID userId, String content) {
+        this.id = UUID.randomUUID();
         this.questionID = questionID;
         this.userId = userId;
         this.content = content;
-        this.isAccepted = false;
-        this.upVoteCount = 0;
-        this.downVoteCount = 0;
         this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.relatedAnswers = new LinkedList<Answer>();
     }
 
-    public Answer(UUID questionID, UUID userId, String content, boolean isAccepted, int upVoteCount, int downVoteCount) {
+    public Answer(UUID questionID, UUID userId, String content, byte[] imageInByte) {
+        this.id = UUID.randomUUID();
         this.questionID = questionID;
         this.userId = userId;
         this.content = content;
-        this.isAccepted = isAccepted;
+        this.imageInByte = imageInByte;
+        this.createdAt = LocalDateTime.now();
+    }
+
+
+    public Answer(UUID questionID, UUID userId, String content, byte[] imageInByte, boolean isBestAnswer, int upVoteCount, int downVoteCount, LocalDateTime createdAt, Queue<Answer> relatedAnswers) {
+        this.id = UUID.randomUUID();
+        this.questionID = questionID;
+        this.userId = userId;
+        this.content = content;
+        this.imageInByte = imageInByte;
+        this.isBestAnswer = isBestAnswer;
         this.upVoteCount = upVoteCount;
         this.downVoteCount = downVoteCount;
         this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.relatedAnswers = relatedAnswers;
     }
 
     public UUID getId() {
@@ -74,12 +89,20 @@ public class Answer {
         this.content = content;
     }
 
-    public boolean isAccepted() {
-        return isAccepted;
+    public byte[] getImageInByte() {
+        return imageInByte;
     }
 
-    public void setAccepted(boolean accepted) {
-        isAccepted = accepted;
+    public void setImageInByte(byte[] imageInByte) {
+        this.imageInByte = imageInByte;
+    }
+
+    public boolean isBestAnswer() {
+        return isBestAnswer;
+    }
+
+    public void setBestAnswer(boolean accepted) {
+        isBestAnswer = accepted;
     }
 
     public int getUpVoteCount() {
@@ -112,5 +135,13 @@ public class Answer {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Queue<Answer> getRelatedAnswers() {
+        return relatedAnswers;
+    }
+
+    public void setRelatedAnswers(Queue<Answer> relatedAnswers) {
+        this.relatedAnswers = relatedAnswers;
     }
 }

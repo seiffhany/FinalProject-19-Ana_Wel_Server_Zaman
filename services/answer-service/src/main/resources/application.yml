@@ -2,19 +2,19 @@ spring:
     application:
         name: answer-service
 
-data:
-    mongodb:
-        uri: ${MONGODB_URL:mongodb://root:example@localhost:27017/appdb?authSource=admin}
-    redis:
-        host: redis
-        port: 6379
-        password: example
+    data:
+        mongodb:
+            uri: mongodb://mongo:secret@mongodb:27017/miniappdb?authSource=admin
+        redis:
+            host: redis
+            port: 6379
+            password: example
 
-    rabbitmq:
-        host: rabbitmq
-        port: 5672
-        username: root
-        password: example
+        rabbitmq:
+            host: rabbitmq
+            port: 5672
+            username: root
+            password: example
 
 server:
     port: 8085
