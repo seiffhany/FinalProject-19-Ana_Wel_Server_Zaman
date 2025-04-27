@@ -16,7 +16,6 @@ public class AnswerService {
     }
 
     public Answer addAnswer(@RequestBody Answer answer) {
-//        return this.answerRepository.save(answer);
-        return null;
+        return this.answerRepository.save(answer);
     }
 }
