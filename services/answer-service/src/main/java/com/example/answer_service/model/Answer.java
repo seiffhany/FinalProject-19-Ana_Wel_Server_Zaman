@@ -12,6 +12,7 @@ import java.util.UUID;
 public class Answer {
     @Id
     private UUID id;
+    private UUID parentID;
     private UUID questionID;
     private UUID userId;
     private String content;
@@ -21,12 +22,9 @@ public class Answer {
     private int downVoteCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Queue<Answer> relatedAnswers;
 
-    public Answer(){
+    public Answer() {
         this.id = UUID.randomUUID();
-        this.relatedAnswers = new LinkedList<Answer>();
-        this.createdAt = LocalDateTime.now();
     }
 
     public Answer(UUID questionID, UUID userId, String content) {
@@ -35,7 +33,6 @@ public class Answer {
         this.userId = userId;
         this.content = content;
         this.createdAt = LocalDateTime.now();
-        this.relatedAnswers = new LinkedList<Answer>();
     }
 
     public Answer(UUID questionID, UUID userId, String content, byte[] imageInByte) {
@@ -47,22 +44,35 @@ public class Answer {
         this.createdAt = LocalDateTime.now();
     }
 
-
-    public Answer(UUID questionID, UUID userId, String content, byte[] imageInByte, boolean isBestAnswer, int upVoteCount, int downVoteCount, LocalDateTime createdAt, Queue<Answer> relatedAnswers) {
+    public Answer(UUID parentID, UUID questionID, UUID userId, String content) {
         this.id = UUID.randomUUID();
+        this.parentID = parentID;
+        this.questionID = questionID;
+        this.userId = userId;
+        this.content = content;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public Answer(UUID parentID, UUID questionID, UUID userId, String content, byte[] imageInByte) {
+        this.id = UUID.randomUUID();
+        this.parentID = parentID;
         this.questionID = questionID;
         this.userId = userId;
         this.content = content;
         this.imageInByte = imageInByte;
-        this.isBestAnswer = isBestAnswer;
-        this.upVoteCount = upVoteCount;
-        this.downVoteCount = downVoteCount;
         this.createdAt = LocalDateTime.now();
-        this.relatedAnswers = relatedAnswers;
     }
 
     public UUID getId() {
         return id;
+    }
+
+    public UUID getParentID() {
+        return parentID;
+    }
+
+    public void setParentID(UUID parentID) {
+        this.parentID = parentID;
     }
 
     public UUID getQuestionID() {
@@ -101,8 +111,8 @@ public class Answer {
         return isBestAnswer;
     }
 
-    public void setBestAnswer(boolean accepted) {
-        isBestAnswer = accepted;
+    public void setBestAnswer(boolean bestAnswer) {
+        isBestAnswer = bestAnswer;
     }
 
     public int getUpVoteCount() {
@@ -135,13 +145,5 @@ public class Answer {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public Queue<Answer> getRelatedAnswers() {
-        return relatedAnswers;
-    }
-
-    public void setRelatedAnswers(Queue<Answer> relatedAnswers) {
-        this.relatedAnswers = relatedAnswers;
     }
 }
