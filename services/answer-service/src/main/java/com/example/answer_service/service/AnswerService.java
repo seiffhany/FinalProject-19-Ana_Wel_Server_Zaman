@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,5 +45,20 @@ public class AnswerService {
             throw new RuntimeException("Answer not found with id: " + answerId);
         }
     }
+    public void deleteAnswer(UUID answerId) {
+        Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
+        if (optionalAnswer.isPresent()) {
+            Answer answer = optionalAnswer.get();
 
-}
+            List<Answer> childAnswers = answerRepository.findByParentID(answer.getId());
+            for (Answer child : childAnswers)
+            {
+                deleteAnswer(child.getId());
+            }
+
+            answerRepository.delete(answer);
+        }
+    }
+    }
+
+
