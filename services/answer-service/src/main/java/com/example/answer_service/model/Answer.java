@@ -16,7 +16,6 @@ public class Answer {
     private UUID questionID;
     private UUID userId;
     private String content;
-    private byte[] imageInByte;
     private boolean isBestAnswer;
     private int upVoteCount;
     private int downVoteCount;
@@ -35,31 +34,12 @@ public class Answer {
         this.createdAt = LocalDateTime.now();
     }
 
-    public Answer(UUID questionID, UUID userId, String content, byte[] imageInByte) {
-        this.id = UUID.randomUUID();
-        this.questionID = questionID;
-        this.userId = userId;
-        this.content = content;
-        this.imageInByte = imageInByte;
-        this.createdAt = LocalDateTime.now();
-    }
-
     public Answer(UUID parentID, UUID questionID, UUID userId, String content) {
         this.id = UUID.randomUUID();
         this.parentID = parentID;
         this.questionID = questionID;
         this.userId = userId;
         this.content = content;
-        this.createdAt = LocalDateTime.now();
-    }
-
-    public Answer(UUID parentID, UUID questionID, UUID userId, String content, byte[] imageInByte) {
-        this.id = UUID.randomUUID();
-        this.parentID = parentID;
-        this.questionID = questionID;
-        this.userId = userId;
-        this.content = content;
-        this.imageInByte = imageInByte;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -97,14 +77,6 @@ public class Answer {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public byte[] getImageInByte() {
-        return imageInByte;
-    }
-
-    public void setImageInByte(byte[] imageInByte) {
-        this.imageInByte = imageInByte;
     }
 
     public boolean isBestAnswer() {

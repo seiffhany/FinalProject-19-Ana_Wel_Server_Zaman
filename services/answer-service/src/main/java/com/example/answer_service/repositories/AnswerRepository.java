@@ -8,4 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface AnswerRepository extends MongoRepository<Answer, UUID> {
+    Answer findAnswerById(UUID id);
 }

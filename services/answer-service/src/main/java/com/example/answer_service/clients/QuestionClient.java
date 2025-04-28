@@ -10,5 +10,5 @@ import java.util.UUID;
 @FeignClient(name = "question-service", url = "http://localhost:8081/question")
 public interface QuestionClient {
 //    @GetMapping("{id}")
-//    public User getUserByID(@PatchMapping UUID id);
+//    public Question getQuestionByID(@PathVariable UUID id);
 }

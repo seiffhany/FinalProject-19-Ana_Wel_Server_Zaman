@@ -22,4 +22,9 @@ public class AnswerController {
     public Answer addAnswer(@RequestBody Answer answer) {
         return this.answerService.addAnswer(answer);
     }
+
+    @PostMapping("/replyToAnswer")
+    public Answer replyToAnswer(@RequestBody Answer answer){
+        return this.answerService.replyToAnswer(answer);
+    }
 }
