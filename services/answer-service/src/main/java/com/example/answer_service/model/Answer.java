@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ public class Answer {
     private int downVoteCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<UUID> relatedAnswerIds;
 
     public Answer() {
         this.id = UUID.randomUUID();
@@ -61,6 +63,14 @@ public class Answer {
         this.content = content;
         this.imageInByte = imageInByte;
         this.createdAt = LocalDateTime.now();
+    }
+
+    public List<UUID> getRelatedAnswerIds() {
+        return relatedAnswerIds;
+    }
+
+    public void setRelatedAnswerIds(List<UUID> relatedAnswerIds) {
+        this.relatedAnswerIds = relatedAnswerIds;
     }
 
     public UUID getId() {
