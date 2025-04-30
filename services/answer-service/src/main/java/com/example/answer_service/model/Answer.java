@@ -9,17 +9,17 @@ import java.util.*;
 @Document("Answer")
 public class Answer {
     @Id
-    private UUID id;
+    private final UUID id;
     private UUID parentID;
     private UUID questionID;
     private UUID userId;
     private String content;
     private boolean isBestAnswer;
-    private List<UUID> upVoters=new ArrayList<>();;
-    private List<UUID> downVoters=new ArrayList<>();;
+    private Set<UUID> upVoters = new HashSet<>();
+    private Set<UUID> downVoters = new HashSet<>();
     private int upVoteCount;
     private int downVoteCount;
-    private LocalDateTime createdAt;
+    private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public Answer() {
@@ -28,14 +28,14 @@ public class Answer {
         this.createdAt = LocalDateTime.now();
     }
 
-    public Answer(UUID questionID, UUID userId, String content,List<UUID> upVoters, List<UUID> downVoters) {
+    public Answer(UUID questionID, UUID userId, String content,Set<UUID> upVoters,Set<UUID> downVoters) {
         this.id = UUID.randomUUID();
         this.questionID = questionID;
         this.userId = userId;
         this.content = content;
         this.createdAt = LocalDateTime.now();
-        this.upVoters = upVoters;
-        this.downVoters = downVoters;
+       this.upVoters = upVoters;
+       this.downVoters = downVoters;
     }
 
     public Answer(UUID parentID, UUID questionID, UUID userId, String content) {
@@ -119,9 +119,7 @@ public class Answer {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
@@ -131,36 +129,39 @@ public class Answer {
         this.updatedAt = updatedAt;
     }
 
-    public List<UUID> getUpVoters() {
+    public Set<UUID> getUpVoters() {
         return upVoters;
     }
 
-    public void setUpVoters(List<UUID> upVoters) {
+    public void setUpVoters(Set<UUID> upVoters) {
         this.upVoters = upVoters;
     }
 
-    public List<UUID> getDownVoters() {
+    public Set<UUID> getDownVoters() {
         return downVoters;
     }
 
-    public void setDownVoters(List<UUID> downVoters) {
+    public void setDownVoters(Set<UUID> downVoters) {
         this.downVoters = downVoters;
     }
 
+
+
+    // Helper methods
     public void addUpVoter(UUID userId) {
         this.upVoters.add(userId);
-        upVoteCount++;
+        upVoteCount = upVoters.size();
     }
     public void addDownVoter(UUID userId) {
         this.downVoters.add(userId);
-        downVoteCount++;
+        downVoteCount = this.downVoters.size();
     }
     public void removeUpVoter(UUID userId) {
         this.upVoters.remove(userId);
-        upVoteCount--;
+        upVoteCount = this.upVoters.size();
     }
     public void removeDownVoter(UUID userId) {
         this.downVoters.remove(userId);
-        downVoteCount--;
+        downVoteCount = this.downVoters.size();
     }
 }
