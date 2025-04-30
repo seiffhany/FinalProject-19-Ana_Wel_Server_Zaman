@@ -26,9 +26,9 @@ public class AnswerController {
     }
 
     @PutMapping("/{answerId}")
-    public ResponseEntity<?> updateAnswer(@PathVariable UUID answerId, @RequestBody UpdateAnswerRequest request) {
+    public ResponseEntity<?> updateAnswer(@PathVariable UUID answerId, @RequestBody String content) {
         try {
-            Answer updatedAnswer = answerService.updateAnswer(answerId, request);
+            Answer updatedAnswer = answerService.updateAnswer(answerId, content);
             return ResponseEntity.ok(updatedAnswer);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
