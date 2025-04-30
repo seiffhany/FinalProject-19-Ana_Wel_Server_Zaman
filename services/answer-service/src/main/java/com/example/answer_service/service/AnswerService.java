@@ -55,27 +55,39 @@ public class AnswerService {
         }
     }
 
-    public Answer updateAnswer(UUID answerId, UpdateAnswerRequest request) {
-        Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
-
-        if (optionalAnswer.isPresent()) {
-            Answer answer = optionalAnswer.get();
-            answer.setContent(request.getContent());
-
-            if (request.isRemoveImage())
-            {
-                answer.setImageInByte(null);
-            }else if (request.getImage() != null)
-            {
-                answer.setImageInByte(request.getImage());
-            }
-
-            answer.setUpdatedAt(java.time.LocalDateTime.now());
-            return answerRepository.save(answer);
-        } else {
-            throw new RuntimeException("Answer not found with id: " + answerId);
-        }
+//    public Answer updateAnswer(UUID answerId, UpdateAnswerRequest request) {
+//        Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
+//
+//        if (optionalAnswer.isPresent()) {
+//            Answer answer = optionalAnswer.get();
+//            answer.setContent(request.getContent());
+//
+//            if (request.isRemoveImage())
+//            {
+//                answer.setImageInByte(null);
+//            }else if (request.getImage() != null)
+//            {
+//                answer.setImageInByte(request.getImage());
+//            }
+//
+//            answer.setUpdatedAt(java.time.LocalDateTime.now());
+//            return answerRepository.save(answer);
+//        } else {
+//            throw new RuntimeException("Answer not found with id: " + answerId);
+//        }
+//    }
+public Answer updateAnswer(UUID answerId,String content) {
+    Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
+    if (optionalAnswer.isPresent()) {
+        Answer answer = optionalAnswer.get();
+        answer.setContent(content);
+        answer.setUpdatedAt(java.time.LocalDateTime.now());
+        return answerRepository.save(answer);
     }
+    else {
+          throw new RuntimeException("Answer not found with id: " + answerId);
+        }
+}
     public void deleteAnswer(UUID answerId) {
         Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
         if (optionalAnswer.isPresent()) {
