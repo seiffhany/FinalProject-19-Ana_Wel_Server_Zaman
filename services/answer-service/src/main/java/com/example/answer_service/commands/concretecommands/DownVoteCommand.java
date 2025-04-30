@@ -7,21 +7,20 @@ import com.example.answer_service.model.Answer;
 
 import java.util.UUID;
 
-public class UpVoteCommand implements Command {
+public class DownVoteCommand implements Command {
     private AnswerReceiver answerReceiver;
 
-    public UpVoteCommand(AnswerReceiver answerReceiver) {
+    public DownVoteCommand(AnswerReceiver answerReceiver) {
         this.answerReceiver = answerReceiver;
     }
 
     @Override
     public void execute(Answer answer) {
-        answerReceiver.UpVote(answer);
-
+        answerReceiver.DownVote(answer);
     }
 
     @Override
     public void undo(Answer answer) {
-        answerReceiver.undoUpVote(answer);
+        answerReceiver.undoDownVote(answer);
     }
 }
