@@ -4,18 +4,20 @@ import com.example.answer_service.model.Answer;
 import com.example.answer_service.repositories.AnswerRepository;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class FilterByReplies implements Filter {
+public class FilterByReplies implements FilterStrategy {
 
     private final AnswerRepository answerRepository;
 
     public FilterByReplies(AnswerRepository answerRepository) {
         this.answerRepository = answerRepository;
     }
+
     @Override
-    public Answer[] filter(Answer[] answers) {
-        if (answers == null || answers.length == 0) {
-            return new Answer[0];
+    public List<Answer> filter(List<Answer> answers) {
+        if (answers == null || answers.isEmpty()) {
+            return new ArrayList<>();
         }
 
         Map<Answer, Integer> answerReplyCounts = new HashMap<>();
@@ -28,7 +30,7 @@ public class FilterByReplies implements Filter {
         return answerReplyCounts.entrySet().stream()
                 .sorted((entry1, entry2) -> Integer.compare(entry2.getValue(), entry1.getValue()))
                 .map(Map.Entry::getKey)
-                .toArray(Answer[]::new);
+                .collect(Collectors.toList());
     }
 
     private int getNumberOfReplies(Answer answer) {
