@@ -27,22 +27,45 @@ public class AnswerController {
         return this.answerService.addAnswer(answer);
     }
 
-    @GetMapping("/question/{questionID}")
-    public ResponseEntity<List<Answer>> getAllAnswer(@PathVariable UUID questionID) {
-        List<Answer> answers = answerService.getAllAnswerByQuestionId(questionID);
-        return ResponseEntity.ok(answers);
+    @PostMapping("/replyToAnswer")
+    public Answer replyToAnswer(@RequestBody Answer answer) {
+        return this.answerService.replyToAnswer(answer);
     }
 
     @GetMapping("/{answerId}")
-    public ResponseEntity<?> getAnswer(@PathVariable UUID answerId) {
+    public ResponseEntity<Answer> getAnswer(@PathVariable UUID answerId) {
         Answer answer = answerService.getAnswerById(answerId);
         return ResponseEntity.ok(answer);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getAllAnswerfromUser(@PathVariable UUID userId) {
-        List<Answer> answers = answerService.getAllAnswerByUserId(userId);
+    @GetMapping("/getAllAnswersByQuestionID/{questionID}")
+    public ResponseEntity<List<Answer>> getAllAnswersByQuestionID(@PathVariable UUID questionID) {
+        List<Answer> answers = answerService.getAllAnswersByQuestionID(questionID);
         return ResponseEntity.ok(answers);
+    }
+
+    @GetMapping("/getAllAnswersFromUser/{userId}")
+    public ResponseEntity<?> getAllAnswersFromUser(@PathVariable UUID userId) {
+        try {
+            List<Answer> answers = answerService.getAllAnswerByUserId(userId);
+            return ResponseEntity.ok(answers);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to fetch answers: " + e.getMessage());
+        }
+    }
+
+    //Add it lama ngeeb el user token
+    //Mesh hayenfa3 ykoon fy etnen methods b nafs el Get mapping path
+    @GetMapping("/user/logged-in/{userId}")
+    public ResponseEntity<?> getAnswersByLoggedInUser(@PathVariable UUID userId) {
+        try {
+            List<Answer> answers = answerService.getAnswersByLoggedInUser(userId);
+            return ResponseEntity.ok(answers);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to fetch answers: " + e.getMessage());
+        }
     }
 
     @PutMapping("/{answerId}")
@@ -71,7 +94,7 @@ public class AnswerController {
         }
     }
 
-    @DeleteMapping("/question/{questionID}")
+    @DeleteMapping("/deleteAllAnswersByQuestionId/{questionID}")
     public ResponseEntity<String> deleteAllAnswersByQuestionId(@PathVariable UUID questionID) {
         try {
             answerService.deleteAllAnswersByQuestionId(questionID);
@@ -82,33 +105,12 @@ public class AnswerController {
         }
     }
 
+//    Design Patterns related apis
 
-    @PostMapping("/replyToAnswer")
-    public Answer replyToAnswer(@RequestBody Answer answer) {
-        return this.answerService.replyToAnswer(answer);
-    }
-
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getAnswersByUserId(@PathVariable UUID userId) {
-        try {
-            List<Answer> answers = answerService.getAnswersByUserId(userId);
-            return ResponseEntity.ok(answers);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to fetch answers: " + e.getMessage());
-        }
-    }
-
-    //Add it lama ngeeb el user token
-    //Mesh hayenfa3 ykoon fy etnen methods b nafs el Get mapping path 
-    @GetMapping("/user/logged-in/{userId}")
-    public ResponseEntity<?> getAnswersByLoggedInUser(@PathVariable UUID userId) {
-        try {
-            List<Answer> answers = answerService.getAnswersByLoggedInUser(userId);
-            return ResponseEntity.ok(answers);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to fetch answers: " + e.getMessage());
-        }
+    @GetMapping("/getFilteredAnswers/{questionId}")
+    public List<Answer> getFilteredAnswers(
+            @PathVariable UUID questionId,
+            @RequestParam(defaultValue = "recency") String filter) {
+        return this.answerService.getFilteredAnswers(questionId, filter);
     }
 }

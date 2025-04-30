@@ -2,19 +2,23 @@ package com.example.answer_service.strategy_design_pattern;
 
 import com.example.answer_service.model.Answer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-public class FilterByVotes implements Filter {
+public class FilterByVotes implements FilterStrategy {
     @Override
-    public Answer[] filter(Answer[] answers) {
-        if (answers == null || answers.length == 0) {
-            return new Answer[0];
+    public List<Answer> filter(List<Answer> answers) {
+        if (answers == null || answers.isEmpty()) {
+            return new ArrayList<>();
         }
-        Arrays.sort(answers, (a1, a2) -> {
+
+        answers.sort((a1, a2) -> {
             int firstAnswerVotes = a1.getUpVoteCount() - a1.getDownVoteCount();
             int secondAnswerVotes = a2.getUpVoteCount() - a2.getDownVoteCount();
-            return Integer.compare(secondAnswerVotes, firstAnswerVotes);
+            return Integer.compare(secondAnswerVotes, firstAnswerVotes); // Descending
         });
+
         return answers;
     }
 }
