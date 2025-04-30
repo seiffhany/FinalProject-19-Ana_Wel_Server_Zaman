@@ -1,9 +1,10 @@
 package com.example.answer_service.commands.command;
 
 
-import java.util.UUID;
+import com.example.answer_service.model.Answer;
 
 public interface Command {
-    void execute(UUID answerId);
-    void undo(UUID answerId);
+    void execute(Answer answer);
+
+    void undo(Answer answer);
 }

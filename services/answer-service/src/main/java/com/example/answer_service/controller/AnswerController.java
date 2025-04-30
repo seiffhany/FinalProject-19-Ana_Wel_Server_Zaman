@@ -38,10 +38,12 @@ public class AnswerController {
         Answer answer = answerService.getAnswerById(answerId);
         return ResponseEntity.ok(answer);
     }
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getAllAnswerfromUser(@PathVariable UUID userId) {
         List<Answer> answers = answerService.getAllAnswerByUserId(userId);
         return ResponseEntity.ok(answers);
+    }
 
     @PutMapping("/{answerId}")
     public ResponseEntity<?> updateAnswer(@PathVariable UUID answerId, @RequestBody String content) {
@@ -68,13 +70,13 @@ public class AnswerController {
                     .body("Failed to delete answer: " + e.getMessage());
         }
     }
+
     @DeleteMapping("/question/{questionID}")
     public ResponseEntity<String> deleteAllAnswersByQuestionId(@PathVariable UUID questionID) {
         try {
             answerService.deleteAllAnswersByQuestionId(questionID);
             return ResponseEntity.ok("Answers deleted successfully!");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to delete answers from the Question: " + e.getMessage());
         }
@@ -82,7 +84,7 @@ public class AnswerController {
 
 
     @PostMapping("/replyToAnswer")
-    public Answer replyToAnswer(@RequestBody Answer answer){
+    public Answer replyToAnswer(@RequestBody Answer answer) {
         return this.answerService.replyToAnswer(answer);
     }
 

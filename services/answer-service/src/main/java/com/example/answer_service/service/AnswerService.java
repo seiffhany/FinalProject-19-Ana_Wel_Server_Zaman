@@ -37,6 +37,7 @@ public class AnswerService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This question ID doesn't exist");
         }
     }
+
     public void markBestAnswer(UUID answerId, UUID currentUserId) {
         Answer targetAnswer = answerRepository.findAnswerById(answerId);
 
@@ -68,7 +69,6 @@ public class AnswerService {
     }
 
 
-
     public Answer replyToAnswer(Answer answer) {
         try {
 //            questionClient.getQuestionByID(answer.getQuestionID());
@@ -85,28 +85,6 @@ public class AnswerService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This question ID doesn't exist");
         }
     }
-
-//    public Answer updateAnswer(UUID answerId, UpdateAnswerRequest request) {
-//        Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
-//
-//        if (optionalAnswer.isPresent()) {
-//            Answer answer = optionalAnswer.get();
-//            answer.setContent(request.getContent());
-//
-//            if (request.isRemoveImage())
-//            {
-//                answer.setImageInByte(null);
-//            }else if (request.getImage() != null)
-//            {
-//                answer.setImageInByte(request.getImage());
-//            }
-//
-//            answer.setUpdatedAt(java.time.LocalDateTime.now());
-//            return answerRepository.save(answer);
-//        } else {
-//            throw new RuntimeException("Answer not found with id: " + answerId);
-//        }
-//    }
 
     public Answer updateAnswer(UUID answerId, String content) {
         Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
@@ -133,12 +111,14 @@ public class AnswerService {
             answerRepository.delete(answer);
         }
     }
+
     public Answer getAnswerById(UUID answerId) {
         try {
             return answerRepository.findAnswerById(answerId);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve answer", ex);
         }
+    }
 
     public List<Answer> getAnswersByUserId(UUID userId) {
         return answerRepository.findByUserId(userId);
@@ -148,7 +128,6 @@ public class AnswerService {
     public List<Answer> getAnswersByLoggedInUser(UUID userId) {
         return answerRepository.findByUserId(userId);
     }
-}
 
     public List<Answer> getAllAnswerByUserId(UUID userId) {
         try {
@@ -173,6 +152,7 @@ public class AnswerService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve answers for question", ex);
         }
     }
+
     public void deleteAllAnswersByQuestionId(UUID questionId) {
         try {
             List<Answer> answers = answerRepository.findByQuestionID(questionId);
@@ -185,8 +165,4 @@ public class AnswerService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete answers for question", ex);
         }
     }
-
-
 }
-
-
