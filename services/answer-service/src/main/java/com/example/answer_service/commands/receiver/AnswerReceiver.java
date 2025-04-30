@@ -26,6 +26,7 @@ public class AnswerReceiver {
             answerRepository.save(answer);
         }
     }
+
     public void undoUpVote(UUID answerId)
     {
         Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
