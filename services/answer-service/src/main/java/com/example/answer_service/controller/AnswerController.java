@@ -50,6 +50,9 @@ public class AnswerController {
                     .body("Failed to delete answer: " + e.getMessage());
         }
     }
-
-
+  
+    @PostMapping("/replyToAnswer")
+    public Answer replyToAnswer(@RequestBody Answer answer){
+        return this.answerService.replyToAnswer(answer);
+    }
 }
