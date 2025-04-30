@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class AnswerService {
@@ -89,6 +90,15 @@ public class AnswerService {
             answerRepository.delete(answer);
         }
     }
+
+    public List<Answer> getAnswersByUserId(UUID userId) {
+        return answerRepository.findByUserId(userId);
     }
+
+    //Add it lama ngeeb el user token
+    public List<Answer> getAnswersByLoggedInUser(UUID userId) {
+        return answerRepository.findByUserId(userId);
+    }
+}
 
 
