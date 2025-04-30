@@ -44,7 +44,7 @@ public class AnswerReceiver {
 
         }
     }
-    @Transactional
+  
     public void undoUpVote(UUID answerId)
     {
         //user id from the token
@@ -61,6 +61,7 @@ public class AnswerReceiver {
                 }
         }
     }
+  
     @Transactional
     public void DownVote(UUID answerId)
     {

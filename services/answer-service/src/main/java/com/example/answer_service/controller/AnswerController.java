@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +26,22 @@ public class AnswerController {
     public Answer addAnswer(@RequestBody Answer answer) {
         return this.answerService.addAnswer(answer);
     }
+
+    @GetMapping("/question/{questionID}")
+    public ResponseEntity<List<Answer>> getAllAnswer(@PathVariable UUID questionID) {
+        List<Answer> answers = answerService.getAllAnswerByQuestionId(questionID);
+        return ResponseEntity.ok(answers);
+    }
+
+    @GetMapping("/{answerId}")
+    public ResponseEntity<?> getAnswer(@PathVariable UUID answerId) {
+        Answer answer = answerService.getAnswerById(answerId);
+        return ResponseEntity.ok(answer);
+    }
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getAllAnswerfromUser(@PathVariable UUID userId) {
+        List<Answer> answers = answerService.getAllAnswerByUserId(userId);
+        return ResponseEntity.ok(answers);
 
     @PutMapping("/{answerId}")
     public ResponseEntity<?> updateAnswer(@PathVariable UUID answerId, @RequestBody String content) {
@@ -51,7 +68,19 @@ public class AnswerController {
                     .body("Failed to delete answer: " + e.getMessage());
         }
     }
-  
+    @DeleteMapping("/question/{questionID}")
+    public ResponseEntity<String> deleteAllAnswersByQuestionId(@PathVariable UUID questionID) {
+        try {
+            answerService.deleteAllAnswersByQuestionId(questionID);
+            return ResponseEntity.ok("Answers deleted successfully!");
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to delete answers from the Question: " + e.getMessage());
+        }
+    }
+
+
     @PostMapping("/replyToAnswer")
     public Answer replyToAnswer(@RequestBody Answer answer){
         return this.answerService.replyToAnswer(answer);
