@@ -88,5 +88,47 @@ public class AnswerReceiver {
     @Transactional
     public void undoDownVote(UUID answerId)
     {
+        UUID userId = new UUID(0, 0);
+        Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
+        if (optionalAnswer.isPresent())
+        {
+            Answer answer = optionalAnswer.get();
+            if(answer.getDownVoters() != null) {
+                if ((answer.getDownVoters().contains(userId))) {
+                    answer.removeDownVoter(userId);
+                    answerRepository.save(answer);
+                }
+            }
+        }
+    }
+
+    @Transactional
+    public void markBestAnswer(UUID answerId)
+    {
+        Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
+        if (optionalAnswer.isPresent())
+        {
+            Answer answer = optionalAnswer.get();
+            if (!answer.isBestAnswer()) {
+                answer.setBestAnswer(true);
+                answerRepository.save(answer);
+            } else {
+                throw new IllegalStateException("Answer is already marked as best answer");
+            }
+        }
+    }
+
+    @Transactional
+    public void undoMarkBestAnswer(UUID answerId)
+    {
+        Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
+        if (optionalAnswer.isPresent())
+        {
+            Answer answer = optionalAnswer.get();
+            if (answer.isBestAnswer()) {
+                answer.setBestAnswer(false);
+                answerRepository.save(answer);
+            }
+        }
     }
 }
