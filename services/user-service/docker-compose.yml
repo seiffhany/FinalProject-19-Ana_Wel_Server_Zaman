@@ -1,0 +1,45 @@
+services:
+#  user-service:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: user-service
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      - POSTGRES_URL=jdbc:postgresql://postgres:5432/appdb
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=password
+#      - REDIS_HOST=redis
+#      - REDIS_PORT=6379
+#      - REDIS_PASSWORD=password
+#      - SPRING_PROFILES_ACTIVE=prod
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#      redis:
+#        condition: service_healthy
+
+
+  postgres:
+    image: postgres
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=appdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+
+  redis_cache:
+    image: redis:latest
+    container_name: redisCache
+    ports:
+      - "6379:6379"
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisInsight
+    ports:
+      - "5540:5540"
+    restart: always
