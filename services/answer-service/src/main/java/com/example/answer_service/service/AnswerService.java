@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class AnswerService {
@@ -106,14 +107,26 @@ public class AnswerService {
 //            throw new RuntimeException("Answer not found with id: " + answerId);
 //        }
 //    }
+
+    public Answer updateAnswer(UUID answerId, String content) {
+        Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
+        if (optionalAnswer.isPresent()) {
+            Answer answer = optionalAnswer.get();
+            answer.setContent(content);
+            answer.setUpdatedAt(java.time.LocalDateTime.now());
+            return answerRepository.save(answer);
+        } else {
+            throw new RuntimeException("Answer not found with id: " + answerId);
+        }
+    }
+
     public void deleteAnswer(UUID answerId) {
         Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
         if (optionalAnswer.isPresent()) {
             Answer answer = optionalAnswer.get();
 
             List<Answer> childAnswers = answerRepository.findByParentID(answer.getId());
-            for (Answer child : childAnswers)
-            {
+            for (Answer child : childAnswers) {
                 deleteAnswer(child.getId());
             }
 
@@ -126,7 +139,16 @@ public class AnswerService {
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve answer", ex);
         }
+
+    public List<Answer> getAnswersByUserId(UUID userId) {
+        return answerRepository.findByUserId(userId);
     }
+
+    //Add it lama ngeeb el user token
+    public List<Answer> getAnswersByLoggedInUser(UUID userId) {
+        return answerRepository.findByUserId(userId);
+    }
+}
 
     public List<Answer> getAllAnswerByUserId(UUID userId) {
         try {

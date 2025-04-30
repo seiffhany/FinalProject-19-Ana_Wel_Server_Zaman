@@ -27,19 +27,6 @@ public class AnswerController {
         return this.answerService.addAnswer(answer);
     }
 
-//    @PutMapping("/{answerId}")
-//    public ResponseEntity<?> updateAnswer(@PathVariable UUID answerId, @RequestBody UpdateAnswerRequest request) {
-//        try {
-//            Answer updatedAnswer = answerService.updateAnswer(answerId, request);
-//            return ResponseEntity.ok(updatedAnswer);
-//        } catch (RuntimeException e) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body("Failed to update answer: " + e.getMessage());
-//        }
-//    }
-
     @GetMapping("/question/{questionID}")
     public ResponseEntity<List<Answer>> getAllAnswer(@PathVariable UUID questionID) {
         List<Answer> answers = answerService.getAllAnswerByQuestionId(questionID);
@@ -55,6 +42,18 @@ public class AnswerController {
     public ResponseEntity<?> getAllAnswerfromUser(@PathVariable UUID userId) {
         List<Answer> answers = answerService.getAllAnswerByUserId(userId);
         return ResponseEntity.ok(answers);
+
+    @PutMapping("/{answerId}")
+    public ResponseEntity<?> updateAnswer(@PathVariable UUID answerId, @RequestBody String content) {
+        try {
+            Answer updatedAnswer = answerService.updateAnswer(answerId, content);
+            return ResponseEntity.ok(updatedAnswer);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to update answer: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/{answerId}")
@@ -85,5 +84,29 @@ public class AnswerController {
     @PostMapping("/replyToAnswer")
     public Answer replyToAnswer(@RequestBody Answer answer){
         return this.answerService.replyToAnswer(answer);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getAnswersByUserId(@PathVariable UUID userId) {
+        try {
+            List<Answer> answers = answerService.getAnswersByUserId(userId);
+            return ResponseEntity.ok(answers);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to fetch answers: " + e.getMessage());
+        }
+    }
+
+    //Add it lama ngeeb el user token
+    //Mesh hayenfa3 ykoon fy etnen methods b nafs el Get mapping path 
+    @GetMapping("/user/logged-in/{userId}")
+    public ResponseEntity<?> getAnswersByLoggedInUser(@PathVariable UUID userId) {
+        try {
+            List<Answer> answers = answerService.getAnswersByLoggedInUser(userId);
+            return ResponseEntity.ok(answers);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to fetch answers: " + e.getMessage());
+        }
     }
 }

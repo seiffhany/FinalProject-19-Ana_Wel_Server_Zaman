@@ -13,5 +13,4 @@ public interface AnswerRepository extends MongoRepository<Answer, UUID> {
     Answer findAnswerById(UUID id);
     List<Answer> findByUserId(UUID userId);
     List<Answer> findByQuestionID(UUID questionID);
-
 }

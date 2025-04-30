@@ -4,19 +4,19 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 
 @Document("Answer")
 public class Answer {
     @Id
-    private UUID id;
+    private final UUID id;
     private UUID parentID;
     private UUID questionID;
     private UUID userId;
     private String content;
     private boolean isBestAnswer;
+    private Set<UUID> upVoters = new HashSet<>();
+    private Set<UUID> downVoters = new HashSet<>();
     private int upVoteCount;
     private int downVoteCount;
     private LocalDateTime createdAt;
@@ -24,6 +24,8 @@ public class Answer {
 
     public Answer() {
         this.id = UUID.randomUUID();
+
+        this.createdAt = LocalDateTime.now();
     }
 
     public Answer(UUID questionID, UUID userId, String content) {
@@ -107,10 +109,6 @@ public class Answer {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
@@ -119,4 +117,39 @@ public class Answer {
         this.updatedAt = updatedAt;
     }
 
+    public Set<UUID> getUpVoters() {
+        return upVoters;
+    }
+
+    public void setUpVoters(Set<UUID> upVoters) {
+        this.upVoters = upVoters;
+    }
+
+    public Set<UUID> getDownVoters() {
+        return downVoters;
+    }
+
+    public void setDownVoters(Set<UUID> downVoters) {
+        this.downVoters = downVoters;
+    }
+
+
+
+    // Helper methods
+    public void addUpVoter(UUID userId) {
+        this.upVoters.add(userId);
+        upVoteCount = upVoters.size();
+    }
+    public void addDownVoter(UUID userId) {
+        this.downVoters.add(userId);
+        downVoteCount = this.downVoters.size();
+    }
+    public void removeUpVoter(UUID userId) {
+        this.upVoters.remove(userId);
+        upVoteCount = this.upVoters.size();
+    }
+    public void removeDownVoter(UUID userId) {
+        this.downVoters.remove(userId);
+        downVoteCount = this.downVoters.size();
+    }
 }
