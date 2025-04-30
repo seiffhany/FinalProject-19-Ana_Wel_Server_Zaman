@@ -76,26 +76,25 @@ public class AnswerService {
 //            throw new RuntimeException("Answer not found with id: " + answerId);
 //        }
 //    }
-public Answer updateAnswer(UUID answerId,String content) {
-    Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
-    if (optionalAnswer.isPresent()) {
-        Answer answer = optionalAnswer.get();
-        answer.setContent(content);
-        answer.setUpdatedAt(java.time.LocalDateTime.now());
-        return answerRepository.save(answer);
-    }
-    else {
-          throw new RuntimeException("Answer not found with id: " + answerId);
+    public Answer updateAnswer(UUID answerId, String content) {
+        Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
+        if (optionalAnswer.isPresent()) {
+            Answer answer = optionalAnswer.get();
+            answer.setContent(content);
+            answer.setUpdatedAt(java.time.LocalDateTime.now());
+            return answerRepository.save(answer);
+        } else {
+            throw new RuntimeException("Answer not found with id: " + answerId);
         }
-}
+    }
+
     public void deleteAnswer(UUID answerId) {
         Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
         if (optionalAnswer.isPresent()) {
             Answer answer = optionalAnswer.get();
 
             List<Answer> childAnswers = answerRepository.findByParentID(answer.getId());
-            for (Answer child : childAnswers)
-            {
+            for (Answer child : childAnswers) {
                 deleteAnswer(child.getId());
             }
 

@@ -19,7 +19,7 @@ public class Answer {
     private Set<UUID> downVoters = new HashSet<>();
     private int upVoteCount;
     private int downVoteCount;
-    private final LocalDateTime createdAt;
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public Answer() {
@@ -28,27 +28,17 @@ public class Answer {
         this.createdAt = LocalDateTime.now();
     }
 
-    public Answer(UUID questionID, UUID userId, String content,Set<UUID> upVoters,Set<UUID> downVoters) {
+    public Answer(UUID questionID, UUID userId, String content) {
         this.id = UUID.randomUUID();
         this.questionID = questionID;
         this.userId = userId;
         this.content = content;
         this.createdAt = LocalDateTime.now();
-       this.upVoters = upVoters;
-       this.downVoters = downVoters;
     }
 
     public Answer(UUID parentID, UUID questionID, UUID userId, String content) {
         this.id = UUID.randomUUID();
         this.parentID = parentID;
-        this.questionID = questionID;
-        this.userId = userId;
-        this.content = content;
-        this.createdAt = LocalDateTime.now();
-    }
-
-    public Answer(UUID questionID, UUID userId, String content) {
-        this.id = UUID.randomUUID();
         this.questionID = questionID;
         this.userId = userId;
         this.content = content;
@@ -118,8 +108,6 @@ public class Answer {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-
-
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
