@@ -47,6 +47,14 @@ public class Answer {
         this.createdAt = LocalDateTime.now();
     }
 
+    public Answer(UUID questionID, UUID userId, String content) {
+        this.id = UUID.randomUUID();
+        this.questionID = questionID;
+        this.userId = userId;
+        this.content = content;
+        this.createdAt = LocalDateTime.now();
+    }
+
     public UUID getId() {
         return id;
     }
