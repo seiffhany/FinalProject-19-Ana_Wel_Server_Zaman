@@ -10,4 +10,6 @@ import java.util.UUID;
 @Repository
 public interface AnswerRepository extends MongoRepository<Answer, UUID> {
     List<Answer> findByParentID(UUID parentID);
+  
+    Answer findAnswerById(UUID id);
 }
