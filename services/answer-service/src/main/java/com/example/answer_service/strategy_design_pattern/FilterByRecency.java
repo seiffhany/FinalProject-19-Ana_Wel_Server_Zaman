@@ -2,21 +2,22 @@ package com.example.answer_service.strategy_design_pattern;
 
 import com.example.answer_service.model.Answer;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
-public class FilterByRecency implements Filter {
+public class FilterByRecency implements FilterStrategy {
 
     @Override
-    public Answer[] filter(Answer[] answers) {
-        if (answers == null || answers.length == 0) {
-            return new Answer[0];
+    public List<Answer> filter(List<Answer> answers) {
+        if (answers == null || answers.size() == 0) {
+            return new ArrayList<Answer>();
         }
-        for (int i = 0; i < answers.length; i++) {
-            for (int j = 0; j < answers.length - 1 - i; j++) {
-                if (answers[j].getCreatedAt().isBefore(answers[j + 1].getCreatedAt())) {
-                    Answer temp = answers[j];
-                    answers[j] = answers[j + 1];
-                    answers[j + 1] = temp;
+        for (int i = 0; i < answers.size(); i++) {
+            for (int j = 0; j < answers.size() - 1 - i; j++) {
+                if (answers.get(j).getCreatedAt().isBefore(answers.get(j + 1).getCreatedAt())) {
+                    Answer temp = answers.get(j);
+                    answers.set(j, answers.get(j + 1));
+                    answers.set(j + 1, temp);
                 }
             }
         }

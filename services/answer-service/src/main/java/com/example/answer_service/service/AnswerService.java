@@ -4,6 +4,10 @@ import com.example.answer_service.clients.QuestionClient;
 import com.example.answer_service.model.Answer;
 import com.example.answer_service.repositories.AnswerRepository;
 import com.example.answer_service.dto.UpdateAnswerRequest;
+import com.example.answer_service.strategy_design_pattern.FilterByRecency;
+import com.example.answer_service.strategy_design_pattern.FilterByReplies;
+import com.example.answer_service.strategy_design_pattern.FilterByVotes;
+import com.example.answer_service.strategy_design_pattern.FilterContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -21,11 +25,13 @@ import java.util.stream.Collectors;
 public class AnswerService {
     private AnswerRepository answerRepository;
     private QuestionClient questionClient;
+    private FilterContext filterContext;
 
     @Autowired
-    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient) {
+    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext) {
         this.answerRepository = answerRepository;
         this.questionClient = questionClient;
+        this.filterContext = filterContext;
     }
 
     public Answer addAnswer(Answer answer) {
@@ -35,6 +41,49 @@ public class AnswerService {
             return this.answerRepository.save(newAnswer);
         } catch (ResourceNotFoundException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This question ID doesn't exist");
+        }
+    }
+
+    public Answer replyToAnswer(Answer answer) {
+        try {
+//            questionClient.getQuestionByID(answer.getQuestionID());
+            if (answer.getParentID() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad parameters");
+            }
+            UUID parentID = answer.getParentID();
+            Answer retrievedParentAnswer = this.answerRepository.findAnswerById(parentID);
+            if (retrievedParentAnswer.getId() != null) {
+                Answer newAnswer = new Answer(answer.getParentID(), answer.getQuestionID(), answer.getUserId(), answer.getContent());
+                return this.answerRepository.save(newAnswer);
+            } else
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This parent answer ID doesn't exist");
+        } catch (ResourceNotFoundException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This question ID doesn't exist");
+        }
+    }
+
+    public List<Answer> getFilteredAnswers(UUID questionID, String filter) {
+        try {
+//            questionClient.getQuestionByID(answer.getQuestionID());
+            List<Answer> answers = this.answerRepository.findByQuestionID(questionID);
+            if (answers.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The question doesn't have associated answers");
+            }
+
+            switch (filter.toLowerCase()) {
+                case "recency":
+                    filterContext.setStrategy(new FilterByRecency());
+                    break;
+                case "votes":
+                    filterContext.setStrategy(new FilterByVotes());
+                    break;
+                default:
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filter type");
+            }
+
+            return this.filterContext.filter(answers);
+        } catch (ResourceNotFoundException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This question ID doesn't exist or the question doesn't have associated answers");
         }
     }
 
@@ -66,24 +115,6 @@ public class AnswerService {
         }
         targetAnswer.setBestAnswer(true);
         answerRepository.save(targetAnswer);
-    }
-
-
-    public Answer replyToAnswer(Answer answer) {
-        try {
-//            questionClient.getQuestionByID(answer.getQuestionID());
-            if (answer.getParentID() == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad parameters");
-            }
-            Answer retrievedParentAnswer = this.answerRepository.findAnswerById(answer.getParentID());
-            if (retrievedParentAnswer.getId() != null) {
-                Answer newAnswer = new Answer(answer.getParentID(), answer.getQuestionID(), answer.getUserId(), answer.getContent());
-                return this.answerRepository.save(newAnswer);
-            } else
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This parent answer ID doesn't exist");
-        } catch (ResourceNotFoundException ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This question ID doesn't exist");
-        }
     }
 
     public Answer updateAnswer(UUID answerId, String content) {
@@ -120,10 +151,6 @@ public class AnswerService {
         }
     }
 
-    public List<Answer> getAnswersByUserId(UUID userId) {
-        return answerRepository.findByUserId(userId);
-    }
-
     //Add it lama ngeeb el user token
     public List<Answer> getAnswersByLoggedInUser(UUID userId) {
         return answerRepository.findByUserId(userId);
@@ -141,7 +168,7 @@ public class AnswerService {
         }
     }
 
-    public List<Answer> getAllAnswerByQuestionId(UUID questionId) {
+    public List<Answer> getAllAnswersByQuestionID(UUID questionId) {
         try {
             List<Answer> answers = answerRepository.findByQuestionID(questionId);
             if (answers.isEmpty()) {
