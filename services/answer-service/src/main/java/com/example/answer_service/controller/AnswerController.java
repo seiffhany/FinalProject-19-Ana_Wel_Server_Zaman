@@ -18,14 +18,10 @@ import java.util.UUID;
 @RequestMapping("/answer")
 public class AnswerController {
     private final AnswerService answerService;
-    private final AnswerReceiver answerReceiver;
-    private final AnswerRepository answerRepository;
 
     @Autowired
-    public AnswerController(AnswerService answerService, AnswerReceiver answerReceiver, AnswerRepository answerRepository) {
+    public AnswerController(AnswerService answerService) {
         this.answerService = answerService;
-        this.answerReceiver = answerReceiver;
-        this.answerRepository = answerRepository;
     }
 
     @PostMapping("/addAnswer")
@@ -110,10 +106,11 @@ public class AnswerController {
                     .body("Failed to delete answers from the Question: " + e.getMessage());
         }
     }
-    @PostMapping("/markBest/{answerId}")
+
+    @PostMapping("/markBestAnswer/{answerId}")
     public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId) {
-        Answer answer = answerRepository.findAnswerById(answerId);
-        answerReceiver.markBestAnswer(answer);
+        this.answerService.markBestAnswer(answerId);
+
         return ResponseEntity.ok().build();
     }
 

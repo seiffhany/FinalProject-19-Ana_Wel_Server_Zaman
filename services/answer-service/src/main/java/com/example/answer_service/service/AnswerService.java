@@ -1,6 +1,7 @@
 package com.example.answer_service.service;
 
 import com.example.answer_service.clients.QuestionClient;
+import com.example.answer_service.commands.receiver.AnswerReceiver;
 import com.example.answer_service.model.Answer;
 import com.example.answer_service.repositories.AnswerRepository;
 import com.example.answer_service.dto.UpdateAnswerRequest;
@@ -26,12 +27,15 @@ public class AnswerService {
     private AnswerRepository answerRepository;
     private QuestionClient questionClient;
     private FilterContext filterContext;
+    private AnswerReceiver answerReceiver;
+
 
     @Autowired
-    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext) {
+    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext, AnswerReceiver answerReceiver) {
         this.answerRepository = answerRepository;
         this.questionClient = questionClient;
         this.filterContext = filterContext;
+        this.answerReceiver = answerReceiver;
     }
 
     public Answer addAnswer(Answer answer) {
@@ -77,6 +81,9 @@ public class AnswerService {
                 case "votes":
                     filterContext.setStrategy(new FilterByVotes());
                     break;
+                case "replies":
+                    filterContext.setStrategy(new FilterByReplies());
+                    break;
                 default:
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filter type");
             }
@@ -87,8 +94,9 @@ public class AnswerService {
         }
     }
 
-    public void markBestAnswer(UUID answerId, UUID currentUserId) {
-
+    public void markBestAnswer(UUID answerId) {
+        Answer answer = answerRepository.findAnswerById(answerId);
+        answerReceiver.markBestAnswer(answer);
     }
 
     public Answer updateAnswer(UUID answerId, String content) {
