@@ -47,7 +47,7 @@ public class Role {
      * The permissions associated with this role.
      * This defines what actions can be performed by users with this role.
      */
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany
     @JoinTable(
             name = "role_permissions",
             joinColumns = @JoinColumn(name = "role_id"),

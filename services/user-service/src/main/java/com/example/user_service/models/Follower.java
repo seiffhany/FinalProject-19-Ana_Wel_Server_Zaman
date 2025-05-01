@@ -35,14 +35,29 @@ public class Follower {
      * The user who is following another user.
      */
     @ManyToOne
-    @JoinColumn(name = "follower_id", insertable = false, updatable = false)
+    @MapsId("followerId") // Maps the followerId in the composite key
+    @JoinColumn(name = "follower_id")
     private User follower;
 
     /**
      * The user who is being followed.
      */
     @ManyToOne
-    @JoinColumn(name = "followed_id", insertable = false, updatable = false)
+    @MapsId("followedId") // Maps the followedId in the composite key
+    @JoinColumn(name = "followed_id")
     private User followed;
+
+    /**
+     * Constructor to create a Follower entity with the follower and followed users.
+     *
+     * @param follower The user who is following another user.
+     * @param followed The user who is being followed.
+     */
+    public Follower(User follower, User followed) {
+        this.follower = follower;
+        this.followed = followed;
+        this.id = new FollowerId(follower.getId(), followed.getId());
+        this.followedAt = OffsetDateTime.now();
+    }
 
 }

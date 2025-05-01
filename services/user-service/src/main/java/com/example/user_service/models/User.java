@@ -1,5 +1,6 @@
 package com.example.user_service.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -94,21 +95,21 @@ public class User implements UserDetails {
      * The followers of this user.
      * This represents the users who are following this user.
      */
-    @OneToMany(mappedBy = "follower")
+    @OneToMany(mappedBy = "followed")
     private List<Follower> followers = new ArrayList<>();
 
     /**
      * The users that this user is following.
      * This represents the users that this user is following.
      */
-    @OneToMany(mappedBy = "followed")
+    @OneToMany(mappedBy = "follower")
     private List<Follower> following = new ArrayList<>();
 
     /**
      * The settings associated with this user.
      * This can include preferences for notifications, themes, etc.
      */
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_settings_id")
     private UserSettings userSettings;
 
@@ -117,6 +118,7 @@ public class User implements UserDetails {
      * This defines how the user wants to receive notifications for different activities.
      */
     @OneToMany(mappedBy = "user")
+    @JsonManagedReference
     private List<NotificationPreference> notificationPreferences = new ArrayList<>();
 
     /**
