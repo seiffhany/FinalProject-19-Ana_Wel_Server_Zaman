@@ -8,6 +8,9 @@ import com.example.answer_service.strategy_design_pattern.FilterByRecency;
 import com.example.answer_service.strategy_design_pattern.FilterByReplies;
 import com.example.answer_service.strategy_design_pattern.FilterByVotes;
 import com.example.answer_service.strategy_design_pattern.FilterContext;
+import com.example.answer_service.commands.concretecommands.UpVoteCommand;
+import com.example.answer_service.commands.concretecommands.DownVoteCommand;
+import com.example.answer_service.commands.receiver.AnswerReceiver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -26,12 +29,15 @@ public class AnswerService {
     private AnswerRepository answerRepository;
     private QuestionClient questionClient;
     private FilterContext filterContext;
+    private AnswerReceiver answerReceiver;
 
     @Autowired
-    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext) {
+    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, 
+                        FilterContext filterContext, AnswerReceiver answerReceiver) {
         this.answerRepository = answerRepository;
         this.questionClient = questionClient;
         this.filterContext = filterContext;
+        this.answerReceiver = answerReceiver;
     }
 
     public Answer addAnswer(Answer answer) {
@@ -116,6 +122,98 @@ public class AnswerService {
         targetAnswer.setBestAnswer(true);
         answerRepository.save(targetAnswer);
     }
+
+
+    public void upVoteAnswer(UUID answerId, UUID currentUserId)
+    {
+        //            questionClient.getQuestionByID(answer.getQuestionID());
+        if (currentUserId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID cannot be null");
+        }
+
+        Answer answer = answerRepository.findAnswerById(answerId);
+
+        if (answer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found with id: " + answerId);
+        }
+
+        // Might be changed if user can Upvote  nafso
+        // if (answer.getUserId().equals(currentUserId)) {
+        //     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Users cannot vote on their own answers");
+        // }
+
+        // Check if user has already upvoted
+        if (answer.getUpVoters() != null && answer.getUpVoters().contains(currentUserId)) {
+            // User has already upvoted, so remove the upvote
+            answer.setUserId(currentUserId);
+            UpVoteCommand upVoteCommand = new UpVoteCommand(answerReceiver);
+            upVoteCommand.undo(answer);
+            return;
+        }
+
+        // If user has downvoted remove the downvote first
+        if (answer.getDownVoters() != null && answer.getDownVoters().contains(currentUserId)) {
+            answer.setUserId(currentUserId);
+            DownVoteCommand downVoteCommand = new DownVoteCommand(answerReceiver);
+            downVoteCommand.undo(answer);
+        }
+        
+        answer.setUserId(currentUserId);
+        
+        UpVoteCommand upVoteCommand = new UpVoteCommand(answerReceiver);
+        try {
+            upVoteCommand.execute(answer);
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    public void downVoteAnswer(UUID answerId, UUID currentUserId)
+    {
+        //            questionClient.getQuestionByID(answer.getQuestionID());
+        
+        if (currentUserId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID cannot be null");
+        }
+
+        Answer answer = answerRepository.findAnswerById(answerId);
+
+        if (answer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found with id: " + answerId);
+        }
+
+        // Might be changed if user can downvote nafso
+        // if (answer.getUserId().equals(currentUserId)) {
+        //     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Users cannot vote on their own answers");
+        // }
+
+        // Check if user has already downvoted
+        if (answer.getDownVoters() != null && answer.getDownVoters().contains(currentUserId)) {
+            // User has already downvoted, so remove the downvote
+            answer.setUserId(currentUserId);
+            DownVoteCommand downVoteCommand = new DownVoteCommand(answerReceiver);
+            downVoteCommand.undo(answer);
+            return;
+        }
+
+        // If user has upvoted remove the upvote first
+        if (answer.getUpVoters() != null && answer.getUpVoters().contains(currentUserId)) {
+            answer.setUserId(currentUserId);
+            UpVoteCommand upVoteCommand = new UpVoteCommand(answerReceiver);
+            upVoteCommand.undo(answer);
+        }
+        
+        answer.setUserId(currentUserId);
+        
+        DownVoteCommand downVoteCommand = new DownVoteCommand(answerReceiver);
+        try {
+            downVoteCommand.execute(answer);
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+    
+    
 
     public Answer updateAnswer(UUID answerId, String content) {
         Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
