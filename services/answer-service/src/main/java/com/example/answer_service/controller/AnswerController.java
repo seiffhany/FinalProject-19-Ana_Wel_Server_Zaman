@@ -1,7 +1,9 @@
 package com.example.answer_service.controller;
 
+import com.example.answer_service.commands.receiver.AnswerReceiver;
 import com.example.answer_service.dto.UpdateAnswerRequest;
 import com.example.answer_service.model.Answer;
+import com.example.answer_service.repositories.AnswerRepository;
 import com.example.answer_service.service.AnswerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,10 +18,14 @@ import java.util.UUID;
 @RequestMapping("/answer")
 public class AnswerController {
     private final AnswerService answerService;
+    private final AnswerReceiver answerReceiver;
+    private final AnswerRepository answerRepository;
 
     @Autowired
-    public AnswerController(AnswerService answerService) {
+    public AnswerController(AnswerService answerService, AnswerReceiver answerReceiver, AnswerRepository answerRepository) {
         this.answerService = answerService;
+        this.answerReceiver = answerReceiver;
+        this.answerRepository = answerRepository;
     }
 
     @PostMapping("/addAnswer")
@@ -104,8 +110,13 @@ public class AnswerController {
                     .body("Failed to delete answers from the Question: " + e.getMessage());
         }
     }
+    @PostMapping("/markBest/{answerId}")
+    public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId) {
+        Answer answer = answerRepository.findAnswerById(answerId);
+        answerReceiver.markBestAnswer(answer);
+        return ResponseEntity.ok().build();
+    }
 
-//    Design Patterns related apis
 
     @GetMapping("/getFilteredAnswers/{questionId}")
     public List<Answer> getFilteredAnswers(
