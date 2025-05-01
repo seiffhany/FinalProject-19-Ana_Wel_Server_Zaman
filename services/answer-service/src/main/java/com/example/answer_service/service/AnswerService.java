@@ -1,6 +1,7 @@
 package com.example.answer_service.service;
 
 import com.example.answer_service.clients.QuestionClient;
+import com.example.answer_service.commands.receiver.AnswerReceiver;
 import com.example.answer_service.model.Answer;
 import com.example.answer_service.repositories.AnswerRepository;
 import com.example.answer_service.dto.UpdateAnswerRequest;
@@ -32,8 +33,7 @@ public class AnswerService {
     private AnswerReceiver answerReceiver;
 
     @Autowired
-    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, 
-                        FilterContext filterContext, AnswerReceiver answerReceiver) {
+    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext, AnswerReceiver answerReceiver) {
         this.answerRepository = answerRepository;
         this.questionClient = questionClient;
         this.filterContext = filterContext;
@@ -83,6 +83,9 @@ public class AnswerService {
                 case "votes":
                     filterContext.setStrategy(new FilterByVotes());
                     break;
+                case "replies":
+                    filterContext.setStrategy(new FilterByReplies());
+                    break;
                 default:
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filter type");
             }
@@ -93,34 +96,9 @@ public class AnswerService {
         }
     }
 
-    public void markBestAnswer(UUID answerId, UUID currentUserId) {
-        Answer targetAnswer = answerRepository.findAnswerById(answerId);
-
-        if (targetAnswer.getParentID() != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A reply cannot be marked as best answer");
-        }
-
-        List<Answer> allAnswers = answerRepository.findByQuestionID(targetAnswer.getQuestionID());
-
-//        UUID questionOwnerId = questionClient.getQuestionOwnerId(targetAnswer.getQuestionID());
-//        if (!questionOwnerId.equals(currentUserId)) {
-//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the question author can mark best answer");
-//        }
-
-        if (targetAnswer.isBestAnswer()) {
-            targetAnswer.setBestAnswer(false);
-            answerRepository.save(targetAnswer);
-            return;
-        }
-
-        for (Answer answer : allAnswers) {
-            if (answer.isBestAnswer()) {
-                answer.setBestAnswer(false);
-                answerRepository.save(answer);
-            }
-        }
-        targetAnswer.setBestAnswer(true);
-        answerRepository.save(targetAnswer);
+    public void markBestAnswer(UUID answerId) {
+        Answer answer = answerRepository.findAnswerById(answerId);
+        answerReceiver.markBestAnswer(answer);
     }
 
 
@@ -245,7 +223,7 @@ public class AnswerService {
         try {
             return answerRepository.findAnswerById(answerId);
         } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve answer", ex);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve answer", ex);
         }
     }
 
@@ -262,7 +240,7 @@ public class AnswerService {
             }
             return answers;
         } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve user's answers", ex);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve user's answers", ex);
         }
     }
 
@@ -274,7 +252,7 @@ public class AnswerService {
             }
             return answers;
         } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve answers for question", ex);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve answers for question", ex);
         }
     }
 
@@ -287,7 +265,7 @@ public class AnswerService {
             answerRepository.deleteAll(answers);
 
         } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete answers for question", ex);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete answers for question", ex);
         }
     }
 }

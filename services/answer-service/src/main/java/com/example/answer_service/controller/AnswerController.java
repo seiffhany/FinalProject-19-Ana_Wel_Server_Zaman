@@ -1,7 +1,9 @@
 package com.example.answer_service.controller;
 
+import com.example.answer_service.commands.receiver.AnswerReceiver;
 import com.example.answer_service.dto.UpdateAnswerRequest;
 import com.example.answer_service.model.Answer;
+import com.example.answer_service.repositories.AnswerRepository;
 import com.example.answer_service.service.AnswerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -105,7 +107,13 @@ public class AnswerController {
         }
     }
 
-//    Design Patterns related apis
+    @PostMapping("/markBestAnswer/{answerId}")
+    public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId) {
+        this.answerService.markBestAnswer(answerId);
+
+        return ResponseEntity.ok().build();
+    }
+
 
     @GetMapping("/getFilteredAnswers/{questionId}")
     public List<Answer> getFilteredAnswers(
