@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -192,4 +193,19 @@ public class AnswerService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete answers for question", ex);
         }
     }
+
+    public List<AnswerWithReplies> getNestedAnswers(UUID questionId) {
+        List<Answer> allAnswers = answerRepository.findByQuestionID(questionId);
+        Map<UUID, List<Answer>> repliesMap = allAnswers.stream()
+                .filter(a -> a.getParentID() != null)
+                .collect(Collectors.groupingBy(Answer::getParentID));
+
+        return allAnswers.stream()
+                .filter(a -> a.getParentID() == null)
+                .map(parent -> new AnswerWithReplies(parent, repliesMap.getOrDefault(parent.getId(), List.of())))
+                .collect(Collectors.toList());
+    }
+
+    // DTO for nested response
+    public record AnswerWithReplies(Answer answer, List<Answer> replies) {}
 }

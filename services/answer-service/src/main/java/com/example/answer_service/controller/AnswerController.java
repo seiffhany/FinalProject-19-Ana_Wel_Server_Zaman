@@ -113,4 +113,9 @@ public class AnswerController {
             @RequestParam(defaultValue = "recency") String filter) {
         return this.answerService.getFilteredAnswers(questionId, filter);
     }
+    @GetMapping("/question/{questionId}/nested")
+    public ResponseEntity<List<AnswerService.AnswerWithReplies>> getNestedAnswers(@PathVariable UUID questionId) {
+        List<AnswerService.AnswerWithReplies> nestedAnswers = answerService.getNestedAnswers(questionId);
+        return ResponseEntity.ok(nestedAnswers);
+    }
 }
