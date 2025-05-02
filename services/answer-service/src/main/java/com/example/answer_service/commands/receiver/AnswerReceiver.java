@@ -83,18 +83,18 @@ public class AnswerReceiver {
         }
     }
 
-//    @Transactional
-//    public void markBestAnswer(Answer answer) {
-//        UUID userId = answer.getUserId();
-//        if (!answer.isBestAnswer()) {
+    @Transactional
+    public void markBestAnswer(Answer answer) {
+        UUID userId = answer.getUserId();
+        if (!answer.isBestAnswer()) {
 //            UUID  questionID= answer.getQuestionID();
 //            if()
-//            answer.setBestAnswer(true);
-//            answerRepository.save(answer);
-//        } else {
-//            throw new IllegalStateException("Answer is already marked as best answer");
-//        }
-//    }
+            answer.setBestAnswer(true);
+            answerRepository.save(answer);
+        } else {
+            throw new IllegalStateException("Answer is already marked as best answer");
+        }
+    }
 
     @Transactional
     public void undoMarkBestAnswer(Answer answer) {
