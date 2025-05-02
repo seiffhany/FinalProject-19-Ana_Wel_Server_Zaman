@@ -20,7 +20,7 @@ import java.time.OffsetDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"follower", "followed"})
+@ToString
 public class Follower {
 
     /**
@@ -41,7 +41,7 @@ public class Follower {
     @ManyToOne
     @MapsId("followerId") // Maps the followerId in the composite key
     @JoinColumn(name = "follower_id")
-    @JsonBackReference("user-following")
+    @JsonBackReference
     private User follower;
 
     /**
@@ -50,7 +50,7 @@ public class Follower {
     @ManyToOne
     @MapsId("followedId") // Maps the followedId in the composite key
     @JoinColumn(name = "followed_id")
-    @JsonBackReference("user-followers")
+    @JsonBackReference
     private User followed;
 
     /**

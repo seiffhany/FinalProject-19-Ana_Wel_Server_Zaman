@@ -104,7 +104,7 @@ public class User implements UserDetails {
      * This is a one-to-one relationship with the UserProfile entity.
      */
     @OneToOne(mappedBy = "user")
-    @JsonBackReference("user-profile")
+    @JsonBackReference
     private UserProfile userProfile;
 
     /**
@@ -112,7 +112,7 @@ public class User implements UserDetails {
      * This represents the users who are following this user.
      */
     @OneToMany(mappedBy = "followed")
-    @JsonManagedReference("user-followers")
+    @JsonManagedReference
     private List<Follower> followers = new ArrayList<>();
 
     /**
@@ -120,7 +120,7 @@ public class User implements UserDetails {
      * This represents the users that this user is following.
      */
     @OneToMany(mappedBy = "follower")
-    @JsonManagedReference("user-following")
+    @JsonManagedReference
     private List<Follower> following = new ArrayList<>();
 
     /**

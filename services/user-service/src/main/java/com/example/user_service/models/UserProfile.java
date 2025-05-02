@@ -73,7 +73,7 @@ public class UserProfile {
      */
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
-    @JsonManagedReference("user-profile")
+    @JsonManagedReference
     private User user;
 
     /**

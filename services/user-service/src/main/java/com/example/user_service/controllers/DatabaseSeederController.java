@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.List;
 
 @RestController
 @RequestMapping("${api.base.url}/seed")
@@ -106,17 +107,17 @@ public class DatabaseSeederController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<String> getAllUsers() {
-        return ResponseEntity.ok(userRepository.findAll().toString());
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userRepository.findAll());
     }
 
     @GetMapping("/profiles")
-    public ResponseEntity<String> getAllProfiles() {
-        return ResponseEntity.ok(userProfileRepository.findAll().toString());
+    public ResponseEntity<List<UserProfile>> getAllProfiles() {
+        return ResponseEntity.ok(userProfileRepository.findAll());
     }
 
     @GetMapping("/followers")
-    public ResponseEntity<String> getAllFollowers() {
-        return ResponseEntity.ok(followerRepository.findAll().toString());
+    public ResponseEntity<List<Follower>> getAllFollowers() {
+        return ResponseEntity.ok(followerRepository.findAll());
     }
 }
