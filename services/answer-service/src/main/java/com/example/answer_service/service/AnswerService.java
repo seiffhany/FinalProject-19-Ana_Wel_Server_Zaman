@@ -1,6 +1,7 @@
 package com.example.answer_service.service;
 
 import com.example.answer_service.clients.QuestionClient;
+import com.example.answer_service.commands.receiver.AnswerReceiver;
 import com.example.answer_service.model.Answer;
 import com.example.answer_service.repositories.AnswerRepository;
 import com.example.answer_service.dto.UpdateAnswerRequest;
@@ -12,7 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -26,6 +30,8 @@ public class AnswerService {
     private AnswerRepository answerRepository;
     private QuestionClient questionClient;
     private FilterContext filterContext;
+    private AnswerReceiver answerReceiver;
+
 
     @Autowired
     public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext) {
@@ -87,9 +93,33 @@ public class AnswerService {
         }
     }
 
-    public void markBestAnswer(UUID answerId, UUID currentUserId) {
+    public void markBestAnswer(UUID answerId) {
+        Answer answer = answerRepository.findAnswerById(answerId);
+        if (answer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found");
+        }
 
+//        if (!answer.getUserId().equals(questionClient.getQuestionOwnerId)) {
+//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the author of this answer");
+//        }
+        if (answer.getParentID() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A reply cannot be marked as best answer");
+        }
+        List<Answer> allAnswers = answerRepository.findByQuestionID(answer.getQuestionID());
+        for (Answer a : allAnswers) {
+            if (a.isBestAnswer() && !a.getId().equals(answer.getId())) {
+                a.setBestAnswer(false);
+                answerRepository.save(a);
+            }
+        }
+        if (answer.isBestAnswer()) {
+            answer.setBestAnswer(false);
+            answerRepository.save(answer);
+            return;
+        }
+        answerReceiver.markBestAnswer(answer);
     }
+
 
     public Answer updateAnswer(UUID answerId, String content) {
         Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
