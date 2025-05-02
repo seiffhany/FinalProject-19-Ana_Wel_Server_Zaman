@@ -1,9 +1,12 @@
 package com.example.user_service.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
@@ -17,6 +20,7 @@ import java.time.OffsetDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"follower", "followed"})
 public class Follower {
 
     /**
@@ -37,6 +41,7 @@ public class Follower {
     @ManyToOne
     @MapsId("followerId") // Maps the followerId in the composite key
     @JoinColumn(name = "follower_id")
+    @JsonBackReference("user-following")
     private User follower;
 
     /**
@@ -45,6 +50,7 @@ public class Follower {
     @ManyToOne
     @MapsId("followedId") // Maps the followedId in the composite key
     @JoinColumn(name = "followed_id")
+    @JsonBackReference("user-followers")
     private User followed;
 
     /**

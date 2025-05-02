@@ -1,6 +1,8 @@
 package com.example.user_service.models;
 
 import com.example.user_service.models.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "user")
 public class UserProfile {
 
     /**
@@ -70,6 +73,7 @@ public class UserProfile {
      */
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JsonManagedReference("user-profile")
     private User user;
 
     /**

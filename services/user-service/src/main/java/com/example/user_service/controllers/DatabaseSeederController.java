@@ -104,4 +104,19 @@ public class DatabaseSeederController {
 
         return ResponseEntity.ok("Database seeded successfully.");
     }
+
+    @GetMapping("/users")
+    public ResponseEntity<String> getAllUsers() {
+        return ResponseEntity.ok(userRepository.findAll().toString());
+    }
+
+    @GetMapping("/profiles")
+    public ResponseEntity<String> getAllProfiles() {
+        return ResponseEntity.ok(userProfileRepository.findAll().toString());
+    }
+
+    @GetMapping("/followers")
+    public ResponseEntity<String> getAllFollowers() {
+        return ResponseEntity.ok(followerRepository.findAll().toString());
+    }
 }
