@@ -45,6 +45,9 @@ public class AnswerReceiver {
                 answer.removeUpVoter(userId);
                 answerRepository.save(answer);
             }
+            else  {
+                throw new IllegalStateException("User didn't upVote this answer");
+            }
         }
     }
 
@@ -74,19 +77,24 @@ public class AnswerReceiver {
             if ((answer.getDownVoters().contains(userId))) {
                 answer.removeDownVoter(userId);
                 answerRepository.save(answer);
+            } else {
+                throw new IllegalStateException("User didn't downVote this answer");
             }
         }
     }
 
-    @Transactional
-    public void markBestAnswer(Answer answer) {
-        if (!answer.isBestAnswer()) {
-            answer.setBestAnswer(true);
-            answerRepository.save(answer);
-        } else {
-            throw new IllegalStateException("Answer is already marked as best answer");
-        }
-    }
+//    @Transactional
+//    public void markBestAnswer(Answer answer) {
+//        UUID userId = answer.getUserId();
+//        if (!answer.isBestAnswer()) {
+//            UUID  questionID= answer.getQuestionID();
+//            if()
+//            answer.setBestAnswer(true);
+//            answerRepository.save(answer);
+//        } else {
+//            throw new IllegalStateException("Answer is already marked as best answer");
+//        }
+//    }
 
     @Transactional
     public void undoMarkBestAnswer(Answer answer) {
