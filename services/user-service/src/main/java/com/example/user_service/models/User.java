@@ -11,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,33 +64,42 @@ public class User implements UserDetails {
     private String password;
 
     /**
-     * The bio of the user.
-     * This is an optional field that can contain additional information about the user.
+     * The role of the user.
+     * This can be USER, ADMIN, or GUEST.
      */
-    @Column(name = "bio")
-    private String bio;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
 
     /**
-     * The URL of the user's profile picture.
-     * This is an optional field that can contain a link to the user's profile image.
+     * Tracks the time when the user was created.
+     * This is automatically set to the current time when the user is created.
      */
-    @Column(name = "profile_picture_url")
-    private String profilePictureURL;
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt = OffsetDateTime.now();
 
     /**
-     * The roles associated with this user.
-     * This defines what permissions the user has in the system.
+     * Tracks the time when the user was last updated.
+     * This is automatically set to the current time as when the user is updated.
      */
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"),
-            indexes = {
-                    @Index(name = "user_roles_user_id_idx", columnList = "user_id")
-            }
-    )
-    private List<Role> roles = new ArrayList<>();
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt = OffsetDateTime.now();
+
+    /**
+     * Tracks the time when the user last logged in.
+     */
+    @Column(name = "last_login_at")
+    private OffsetDateTime lastLoginAt;
+
+    /**
+     * Tracks if the user is active for managing user accounts.
+     * This can be used to deactivate a user without deleting their account.
+     */
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
+//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    private UserProfile userProfile;
 
     /**
      * The followers of this user.
@@ -105,43 +115,8 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "follower")
     private List<Follower> following = new ArrayList<>();
 
-    /**
-     * The settings associated with this user.
-     * This can include preferences for notifications, themes, etc.
-     */
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_settings_id")
-    private UserSettings userSettings;
 
-    /**
-     * The notification preferences associated with this user.
-     * This defines how the user wants to receive notifications for different activities.
-     */
-    @OneToMany(mappedBy = "user")
-    @JsonManagedReference
-    private List<NotificationPreference> notificationPreferences = new ArrayList<>();
 
-    /**
-     * Constructor to create a User with email, username, password, bio, and profile picture URL.
-     *
-     * @param email             The email address of the user.
-     * @param username          The username of the user.
-     * @param password          The password of the user.
-     * @param bio               The bio of the user.
-     * @param profilePictureURL  The URL of the user's profile picture.
-     */
-    public User(String email,
-                String username,
-                String password,
-                String bio,
-                String profilePictureURL
-    ) {
-        this.email = email;
-        this.username = username;
-        this.password = password;
-        this.bio = bio;
-        this.profilePictureURL = profilePictureURL;
-    }
 
     /**
      * GrantedAuthority implementation for Spring Security.
@@ -151,9 +126,7 @@ public class User implements UserDetails {
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRoleName().toUpperCase()))
-                .collect(Collectors.toList());
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     /**
@@ -197,7 +170,7 @@ public class User implements UserDetails {
      */
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return isActive;
     }
 
     /**
@@ -219,6 +192,6 @@ public class User implements UserDetails {
      */
     @Override
     public boolean isEnabled() {
-        return true;
+        return isActive;
     }
 }
