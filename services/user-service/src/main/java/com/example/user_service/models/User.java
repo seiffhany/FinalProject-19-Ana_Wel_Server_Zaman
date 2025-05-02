@@ -2,14 +2,12 @@ package com.example.user_service.models;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -28,7 +26,8 @@ import java.util.stream.Collectors;
                 @Index(name = "user_username_idx", columnList = "username")
         }
 )
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -38,7 +37,7 @@ public class User implements UserDetails {
      * The unique identifier for the user.
      */
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private UUID id;
 
@@ -98,8 +97,12 @@ public class User implements UserDetails {
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
-//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private UserProfile userProfile;
+    /**
+     * The profile of the user.
+     * This is a one-to-one relationship with the UserProfile entity.
+     */
+    @OneToOne(mappedBy = "user")
+    private UserProfile userProfile;
 
     /**
      * The followers of this user.
@@ -115,8 +118,44 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "follower")
     private List<Follower> following = new ArrayList<>();
 
-
-
+    /**
+     * Constructor to create a User entity with the specified parameters.
+     *
+     * @param email       The email address of the user.
+     * @param username    The username of the user.
+     * @param password    The password of the user.
+     * @param role        The role of the user (USER, ADMIN, GUEST).
+     * @param createdAt   The date and time when the user was created.
+     * @param updatedAt   The date and time when the user was last updated.
+     * @param lastLoginAt The date and time when the user last logged in.
+     * @param isActive    Indicates whether the user account is active or not.
+     * @param userProfile The profile of the user.
+     * @param followers   The list of followers of this user.
+     * @param following   The list of users that this user is following.
+     */
+    public User(String email,
+                String username,
+                String password,
+                Role role,
+                OffsetDateTime createdAt,
+                OffsetDateTime updatedAt,
+                OffsetDateTime lastLoginAt,
+                boolean isActive,
+                UserProfile userProfile,
+                List<Follower> followers,
+                List<Follower> following) {
+        this.email = email;
+        this.username = username;
+        this.password = password;
+        this.role = role;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.lastLoginAt = lastLoginAt;
+        this.isActive = isActive;
+        this.userProfile = userProfile;
+        this.followers = followers;
+        this.following = following;
+    }
 
     /**
      * GrantedAuthority implementation for Spring Security.
