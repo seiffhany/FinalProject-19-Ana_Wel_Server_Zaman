@@ -113,6 +113,34 @@ public class AnswerController {
         }
     }
 
+    
+    @PostMapping("/{answerId}/upvote")
+    public ResponseEntity<?> upvoteAnswer(
+            @PathVariable UUID answerId,
+            @RequestParam UUID userId) {
+        try {
+            answerService.upVoteAnswer(answerId, userId);
+            return ResponseEntity.ok("Answer upvoted successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to upvote answer: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{answerId}/downvote")
+    public ResponseEntity<?> downvoteAnswer(
+            @PathVariable UUID answerId,
+            @RequestParam UUID userId) {
+        try {
+            answerService.downVoteAnswer(answerId, userId);
+            return ResponseEntity.ok("Answer downvoted successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to downvote answer: " + e.getMessage());
+        }
+    }
+    
+
     @PostMapping("/markBestAnswer/{answerId}")
     public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId, @RequestParam UUID loggedInUser) {
         this.answerService.markBestAnswer(answerId, loggedInUser);
