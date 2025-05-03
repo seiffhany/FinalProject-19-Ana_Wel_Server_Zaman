@@ -18,14 +18,10 @@ import java.util.UUID;
 @RequestMapping("/answer")
 public class AnswerController {
     private final AnswerService answerService;
-    private final AnswerReceiver answerReceiver;
-    private final AnswerRepository answerRepository;
 
     @Autowired
-    public AnswerController(AnswerService answerService, AnswerReceiver answerReceiver, AnswerRepository answerRepository) {
+    public AnswerController(AnswerService answerService) {
         this.answerService = answerService;
-        this.answerReceiver = answerReceiver;
-        this.answerRepository = answerRepository;
     }
 
     @PostMapping("/addAnswer")
@@ -110,12 +106,23 @@ public class AnswerController {
                     .body("Failed to delete answers from the Question: " + e.getMessage());
         }
     }
+  
+  @PostMapping("/markBestAnswer/{answerId}")
+    public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId) {
+        this.answerService.markBestAnswer(answerId);
 
-
-    @GetMapping("/getFilteredAnswers/{questionId}")
+        return ResponseEntity.ok().build();
+    }
+  
+  @GetMapping("/getFilteredAnswers/{questionId}")
     public List<Answer> getFilteredAnswers(
             @PathVariable UUID questionId,
             @RequestParam(defaultValue = "recency") String filter) {
         return this.answerService.getFilteredAnswers(questionId, filter);
+    }
+    @GetMapping("/question/{questionId}/nested")
+    public ResponseEntity<List<AnswerService.AnswerWithReplies>> getNestedAnswers(@PathVariable UUID questionId) {
+        List<AnswerService.AnswerWithReplies> nestedAnswers = answerService.getNestedAnswers(questionId);
+        return ResponseEntity.ok(nestedAnswers);
     }
 }

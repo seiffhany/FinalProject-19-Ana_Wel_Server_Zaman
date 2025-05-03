@@ -9,6 +9,9 @@ import com.example.answer_service.strategy_design_pattern.FilterByRecency;
 import com.example.answer_service.strategy_design_pattern.FilterByReplies;
 import com.example.answer_service.strategy_design_pattern.FilterByVotes;
 import com.example.answer_service.strategy_design_pattern.FilterContext;
+import com.example.answer_service.commands.concretecommands.UpVoteCommand;
+import com.example.answer_service.commands.concretecommands.DownVoteCommand;
+import com.example.answer_service.commands.receiver.AnswerReceiver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,12 +36,12 @@ public class AnswerService {
     private FilterContext filterContext;
     private AnswerReceiver answerReceiver;
 
-
-    @Autowired
-    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext) {
+  @Autowired
+    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext, AnswerReceiver answerReceiver) {
         this.answerRepository = answerRepository;
         this.questionClient = questionClient;
         this.filterContext = filterContext;
+        this.answerReceiver = answerReceiver;
     }
 
     public Answer addAnswer(Answer answer) {
@@ -83,6 +87,9 @@ public class AnswerService {
                 case "votes":
                     filterContext.setStrategy(new FilterByVotes());
                     break;
+                case "replies":
+                    filterContext.setStrategy(new FilterByReplies());
+                    break;
                 default:
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filter type");
             }
@@ -121,6 +128,95 @@ public class AnswerService {
     }
 
 
+    public void upVoteAnswer(UUID answerId, UUID currentUserId)
+    {
+        //            questionClient.getQuestionByID(answer.getQuestionID());
+        if (currentUserId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID cannot be null");
+        }
+
+        Answer answer = answerRepository.findAnswerById(answerId);
+
+        if (answer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found with id: " + answerId);
+        }
+
+        // Might be changed if user can Upvote  nafso
+        // if (answer.getUserId().equals(currentUserId)) {
+        //     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Users cannot vote on their own answers");
+        // }
+
+        // Check if user has already upvoted
+        if (answer.getUpVoters() != null && answer.getUpVoters().contains(currentUserId)) {
+            // User has already upvoted, so remove the upvote
+            answer.setUserId(currentUserId);
+            UpVoteCommand upVoteCommand = new UpVoteCommand(answerReceiver);
+            upVoteCommand.undo(answer);
+            return;
+        }
+
+        // If user has downvoted remove the downvote first
+        if (answer.getDownVoters() != null && answer.getDownVoters().contains(currentUserId)) {
+            answer.setUserId(currentUserId);
+            DownVoteCommand downVoteCommand = new DownVoteCommand(answerReceiver);
+            downVoteCommand.undo(answer);
+        }
+        
+        answer.setUserId(currentUserId);
+        
+        UpVoteCommand upVoteCommand = new UpVoteCommand(answerReceiver);
+        try {
+            upVoteCommand.execute(answer);
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    public void downVoteAnswer(UUID answerId, UUID currentUserId)
+    {
+        //            questionClient.getQuestionByID(answer.getQuestionID());
+        
+        if (currentUserId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID cannot be null");
+        }
+
+        Answer answer = answerRepository.findAnswerById(answerId);
+
+        if (answer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found with id: " + answerId);
+        }
+
+        // Might be changed if user can downvote nafso
+        // if (answer.getUserId().equals(currentUserId)) {
+        //     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Users cannot vote on their own answers");
+        // }
+
+        // Check if user has already downvoted
+        if (answer.getDownVoters() != null && answer.getDownVoters().contains(currentUserId)) {
+            // User has already downvoted, so remove the downvote
+            answer.setUserId(currentUserId);
+            DownVoteCommand downVoteCommand = new DownVoteCommand(answerReceiver);
+            downVoteCommand.undo(answer);
+            return;
+        }
+
+        // If user has upvoted remove the upvote first
+        if (answer.getUpVoters() != null && answer.getUpVoters().contains(currentUserId)) {
+            answer.setUserId(currentUserId);
+            UpVoteCommand upVoteCommand = new UpVoteCommand(answerReceiver);
+            upVoteCommand.undo(answer);
+        }
+        
+        answer.setUserId(currentUserId);
+        
+        DownVoteCommand downVoteCommand = new DownVoteCommand(answerReceiver);
+        try {
+            downVoteCommand.execute(answer);
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+    
     public Answer updateAnswer(UUID answerId, String content) {
         Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
         if (optionalAnswer.isPresent()) {
@@ -196,4 +292,19 @@ public class AnswerService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete answers for question", ex);
         }
     }
+
+    public List<AnswerWithReplies> getNestedAnswers(UUID questionId) {
+        List<Answer> allAnswers = answerRepository.findByQuestionID(questionId);
+        Map<UUID, List<Answer>> repliesMap = allAnswers.stream()
+                .filter(a -> a.getParentID() != null)
+                .collect(Collectors.groupingBy(Answer::getParentID));
+
+        return allAnswers.stream()
+                .filter(a -> a.getParentID() == null)
+                .map(parent -> new AnswerWithReplies(parent, repliesMap.getOrDefault(parent.getId(), List.of())))
+                .collect(Collectors.toList());
+    }
+
+    // DTO for nested response
+    public record AnswerWithReplies(Answer answer, List<Answer> replies) {}
 }
