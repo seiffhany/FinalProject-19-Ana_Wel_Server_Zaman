@@ -25,13 +25,13 @@ public class AnswerController {
     }
 
     @PostMapping("/addAnswer")
-    public Answer addAnswer(@RequestBody Answer answer) {
-        return this.answerService.addAnswer(answer);
+    public Answer addAnswer(@RequestBody Answer answer, @RequestParam UUID loggedInUser) {
+        return this.answerService.addAnswer(answer, loggedInUser);
     }
 
     @PostMapping("/replyToAnswer")
-    public Answer replyToAnswer(@RequestBody Answer answer) {
-        return this.answerService.replyToAnswer(answer);
+    public Answer replyToAnswer(@RequestBody Answer answer, @RequestParam UUID loggedInUser) {
+        return this.answerService.replyToAnswer(answer, loggedInUser);
     }
 
     @GetMapping("/{answerId}")
@@ -70,6 +70,12 @@ public class AnswerController {
         }
     }
 
+    @GetMapping("/question/{questionId}/nested")
+    public ResponseEntity<List<AnswerService.AnswerWithReplies>> getNestedAnswers(@PathVariable UUID questionId) {
+        List<AnswerService.AnswerWithReplies> nestedAnswers = answerService.getNestedAnswers(questionId);
+        return ResponseEntity.ok(nestedAnswers);
+    }
+
     @PutMapping("/{answerId}")
     public ResponseEntity<?> updateAnswer(@PathVariable UUID answerId, @RequestBody String content) {
         try {
@@ -106,23 +112,46 @@ public class AnswerController {
                     .body("Failed to delete answers from the Question: " + e.getMessage());
         }
     }
-  
-  @PostMapping("/markBestAnswer/{answerId}")
-    public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId) {
-        this.answerService.markBestAnswer(answerId);
+
+    
+    @PostMapping("/{answerId}/upvote")
+    public ResponseEntity<?> upvoteAnswer(
+            @PathVariable UUID answerId,
+            @RequestParam UUID userId) {
+        try {
+            answerService.upVoteAnswer(answerId, userId);
+            return ResponseEntity.ok("Answer upvoted successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to upvote answer: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{answerId}/downvote")
+    public ResponseEntity<?> downvoteAnswer(
+            @PathVariable UUID answerId,
+            @RequestParam UUID userId) {
+        try {
+            answerService.downVoteAnswer(answerId, userId);
+            return ResponseEntity.ok("Answer downvoted successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to downvote answer: " + e.getMessage());
+        }
+    }
+    
+
+    @PostMapping("/markBestAnswer/{answerId}")
+    public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId, @RequestParam UUID loggedInUser) {
+        this.answerService.markBestAnswer(answerId, loggedInUser);
 
         return ResponseEntity.ok().build();
     }
-  
-  @GetMapping("/getFilteredAnswers/{questionId}")
+
+    @GetMapping("/getFilteredAnswers/{questionId}")
     public List<Answer> getFilteredAnswers(
             @PathVariable UUID questionId,
             @RequestParam(defaultValue = "recency") String filter) {
         return this.answerService.getFilteredAnswers(questionId, filter);
-    }
-    @GetMapping("/question/{questionId}/nested")
-    public ResponseEntity<List<AnswerService.AnswerWithReplies>> getNestedAnswers(@PathVariable UUID questionId) {
-        List<AnswerService.AnswerWithReplies> nestedAnswers = answerService.getNestedAnswers(questionId);
-        return ResponseEntity.ok(nestedAnswers);
     }
 }
