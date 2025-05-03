@@ -267,18 +267,6 @@ public class AnswerService {
         }
     }
 
-    public List<Answer> getAllAnswersByQuestionID(UUID questionId) {
-        try {
-            List<Answer> answers = answerRepository.findByQuestionID(questionId);
-            if (answers.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No answers found for question with id: " + questionId);
-            }
-            return answers;
-        } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve answers for question", ex);
-        }
-    }
-
     public void deleteAllAnswersByQuestionId(UUID questionId) {
         try {
             List<Answer> answers = answerRepository.findByQuestionID(questionId);
@@ -294,17 +282,32 @@ public class AnswerService {
 
     public List<AnswerWithReplies> getNestedAnswers(UUID questionId) {
         List<Answer> allAnswers = answerRepository.findByQuestionID(questionId);
+
+        // Group answers by their parentID
         Map<UUID, List<Answer>> repliesMap = allAnswers.stream()
                 .filter(a -> a.getParentID() != null)
                 .collect(Collectors.groupingBy(Answer::getParentID));
 
+        // Recursively build the nested structure
         return allAnswers.stream()
-                .filter(a -> a.getParentID() == null)
-                .map(parent -> new AnswerWithReplies(parent, repliesMap.getOrDefault(parent.getId(), List.of())))
+                .filter(a -> a.getParentID() == null) // top-level answers
+                .map(parent -> buildAnswerWithReplies(parent, repliesMap))
                 .collect(Collectors.toList());
     }
 
-    // DTO for nested response
-    public record AnswerWithReplies(Answer answer, List<Answer> replies) {
+    // Recursive method to build AnswerWithReplies
+    private AnswerWithReplies buildAnswerWithReplies(Answer answer, Map<UUID, List<Answer>> repliesMap) {
+        List<Answer> directReplies = repliesMap.getOrDefault(answer.getId(), List.of());
+
+        List<AnswerWithReplies> nestedReplies = directReplies.stream()
+                .map(reply -> buildAnswerWithReplies(reply, repliesMap))
+                .collect(Collectors.toList());
+
+        return new AnswerWithReplies(answer, nestedReplies);
     }
+
+    // Updated DTO to support nested replies
+    public record AnswerWithReplies(Answer answer, List<AnswerWithReplies> replies) {
+    }
+
 }
