@@ -16,7 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -33,7 +36,7 @@ public class AnswerService {
     private FilterContext filterContext;
     private AnswerReceiver answerReceiver;
 
-    @Autowired
+  @Autowired
     public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext, AnswerReceiver answerReceiver) {
         this.answerRepository = answerRepository;
         this.questionClient = questionClient;
@@ -99,6 +102,28 @@ public class AnswerService {
 
     public void markBestAnswer(UUID answerId) {
         Answer answer = answerRepository.findAnswerById(answerId);
+        if (answer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found");
+        }
+
+//        if (!answer.getUserId().equals(questionClient.getQuestionOwnerId)) {
+//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the author of this answer");
+//        }
+        if (answer.getParentID() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A reply cannot be marked as best answer");
+        }
+        List<Answer> allAnswers = answerRepository.findByQuestionID(answer.getQuestionID());
+        for (Answer a : allAnswers) {
+            if (a.isBestAnswer() && !a.getId().equals(answer.getId())) {
+                a.setBestAnswer(false);
+                answerRepository.save(a);
+            }
+        }
+        if (answer.isBestAnswer()) {
+            answer.setBestAnswer(false);
+            answerRepository.save(answer);
+            return;
+        }
         answerReceiver.markBestAnswer(answer);
     }
 
@@ -192,8 +217,6 @@ public class AnswerService {
         }
     }
     
-    
-
     public Answer updateAnswer(UUID answerId, String content) {
         Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
         if (optionalAnswer.isPresent()) {

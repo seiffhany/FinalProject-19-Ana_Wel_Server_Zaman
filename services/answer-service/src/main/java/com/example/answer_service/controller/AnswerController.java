@@ -106,16 +106,15 @@ public class AnswerController {
                     .body("Failed to delete answers from the Question: " + e.getMessage());
         }
     }
-
-    @PostMapping("/markBestAnswer/{answerId}")
+  
+  @PostMapping("/markBestAnswer/{answerId}")
     public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId) {
         this.answerService.markBestAnswer(answerId);
 
         return ResponseEntity.ok().build();
     }
-
-
-    @GetMapping("/getFilteredAnswers/{questionId}")
+  
+  @GetMapping("/getFilteredAnswers/{questionId}")
     public List<Answer> getFilteredAnswers(
             @PathVariable UUID questionId,
             @RequestParam(defaultValue = "recency") String filter) {
