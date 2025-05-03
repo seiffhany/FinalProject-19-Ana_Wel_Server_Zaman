@@ -25,13 +25,13 @@ public class AnswerController {
     }
 
     @PostMapping("/addAnswer")
-    public Answer addAnswer(@RequestBody Answer answer) {
-        return this.answerService.addAnswer(answer);
+    public Answer addAnswer(@RequestBody Answer answer, @RequestParam UUID loggedInUser) {
+        return this.answerService.addAnswer(answer, loggedInUser);
     }
 
     @PostMapping("/replyToAnswer")
-    public Answer replyToAnswer(@RequestBody Answer answer) {
-        return this.answerService.replyToAnswer(answer);
+    public Answer replyToAnswer(@RequestBody Answer answer, @RequestParam UUID loggedInUser) {
+        return this.answerService.replyToAnswer(answer, loggedInUser);
     }
 
     @GetMapping("/{answerId}")
@@ -68,6 +68,12 @@ public class AnswerController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to fetch answers: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/question/{questionId}/nested")
+    public ResponseEntity<List<AnswerService.AnswerWithReplies>> getNestedAnswers(@PathVariable UUID questionId) {
+        List<AnswerService.AnswerWithReplies> nestedAnswers = answerService.getNestedAnswers(questionId);
+        return ResponseEntity.ok(nestedAnswers);
     }
 
     @PutMapping("/{answerId}")
@@ -136,12 +142,11 @@ public class AnswerController {
     
 
     @PostMapping("/markBestAnswer/{answerId}")
-    public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId) {
-        this.answerService.markBestAnswer(answerId);
+    public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId, @RequestParam UUID loggedInUser) {
+        this.answerService.markBestAnswer(answerId, loggedInUser);
 
         return ResponseEntity.ok().build();
     }
-
 
     @GetMapping("/getFilteredAnswers/{questionId}")
     public List<Answer> getFilteredAnswers(

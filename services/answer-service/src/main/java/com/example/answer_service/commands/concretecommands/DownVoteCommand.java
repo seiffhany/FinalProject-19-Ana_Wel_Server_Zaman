@@ -3,6 +3,7 @@ package com.example.answer_service.commands.concretecommands;
 
 import com.example.answer_service.commands.command.Command;
 import com.example.answer_service.commands.receiver.AnswerReceiver;
+import com.example.answer_service.dto.CommandDto;
 import com.example.answer_service.model.Answer;
 
 import java.util.UUID;
@@ -15,12 +16,12 @@ public class DownVoteCommand implements Command {
     }
 
     @Override
-    public void execute(Answer answer) {
-        answerReceiver.DownVote(answer);
+    public void execute(CommandDto commandDto) {
+        answerReceiver.DownVote(commandDto);
     }
 
     @Override
-    public void undo(Answer answer) {
-        answerReceiver.undoDownVote(answer);
+    public void undo(CommandDto commandDto) {
+        answerReceiver.undoDownVote(commandDto);
     }
 }

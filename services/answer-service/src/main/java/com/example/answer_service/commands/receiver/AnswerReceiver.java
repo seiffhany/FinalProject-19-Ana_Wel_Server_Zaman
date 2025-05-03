@@ -1,6 +1,8 @@
 package com.example.answer_service.commands.receiver;
 
+import com.example.answer_service.dto.CommandDto;
 import com.example.answer_service.model.Answer;
+import com.example.answer_service.model.CommandDto;
 import com.example.answer_service.repositories.AnswerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,9 +21,9 @@ public class AnswerReceiver {
     }
 
     @Transactional
-    public void UpVote(Answer answer) {
-        //user id from the token
-        UUID userId = answer.getUserId();
+    public void UpVote(CommandDto commandDto) {
+        Answer answer = commandDto.getAnswer();
+        UUID userId = commandDto.getLoggedInUser();
         if (answer.getUpVoters() != null) {
             if (!(answer.getUpVoters().contains(userId))) {
                 answer.addUpVoter(userId);
@@ -37,21 +39,23 @@ public class AnswerReceiver {
         }
     }
 
-    public void undoUpVote(Answer answer) {
-        //user id from the token
-        UUID userId = answer.getUserId();
+    public void undoUpVote(CommandDto commandDto) {
+        Answer answer = commandDto.getAnswer();
+        UUID userId = commandDto.getLoggedInUser();
         if (answer.getUpVoters() != null) {
             if ((answer.getUpVoters().contains(userId))) {
                 answer.removeUpVoter(userId);
                 answerRepository.save(answer);
+            } else {
+                throw new IllegalStateException("User didn't upVote this answer");
             }
         }
     }
 
     @Transactional
-    public void DownVote(Answer answer) {
-        //user id from the token
-        UUID userId = answer.getUserId();
+    public void DownVote(CommandDto commandDto) {
+        Answer answer = commandDto.getAnswer();
+        UUID userId = commandDto.getLoggedInUser();
         if (answer.getDownVoters() != null) {
             if (!(answer.getDownVoters().contains(userId))) {
                 answer.addDownVoter(userId);
@@ -68,31 +72,41 @@ public class AnswerReceiver {
     }
 
     @Transactional
-    public void undoDownVote(Answer answer) {
-        UUID userId = answer.getUserId();
+    public void undoDownVote(CommandDto commandDto) {
+        Answer answer = commandDto.getAnswer();
+        UUID userId = commandDto.getLoggedInUser();
         if (answer.getDownVoters() != null) {
             if ((answer.getDownVoters().contains(userId))) {
                 answer.removeDownVoter(userId);
                 answerRepository.save(answer);
+            } else {
+                throw new IllegalStateException("User didn't downVote this answer");
             }
         }
     }
 
     @Transactional
-    public void markBestAnswer(Answer answer) {
+    public void markBestAnswer(CommandDto commandDto) {
+        Answer answer = commandDto.getAnswer();
+        UUID userId = commandDto.getLoggedInUser();
         if (!answer.isBestAnswer()) {
+//            UUID  questionID= answer.getQuestionID();
+//            if()
             answer.setBestAnswer(true);
             answerRepository.save(answer);
         } else {
-            throw new IllegalStateException("Answer is already marked as best answer");
+            throw new IllegalStateException("CommandDto is already marked as best answer");
         }
     }
 
     @Transactional
-    public void undoMarkBestAnswer(Answer answer) {
+    public void undoMarkBestAnswer(CommandDto commandDto) {
+        Answer answer = commandDto.getAnswer();
         if (answer.isBestAnswer()) {
             answer.setBestAnswer(false);
             answerRepository.save(answer);
+        } else {
+            throw new IllegalStateException("CommandDto is already marked as best answer");
         }
     }
 }
