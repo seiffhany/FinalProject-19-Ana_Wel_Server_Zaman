@@ -2,7 +2,6 @@ package com.example.answer_service.commands.receiver;
 
 import com.example.answer_service.dto.CommandDto;
 import com.example.answer_service.model.Answer;
-import com.example.answer_service.model.CommandDto;
 import com.example.answer_service.repositories.AnswerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
