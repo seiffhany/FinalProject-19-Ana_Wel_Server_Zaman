@@ -41,9 +41,9 @@ public class AnswerController {
     }
 
     @GetMapping("/getAllAnswersByQuestionID/{questionID}")
-    public ResponseEntity<List<Answer>> getAllAnswersByQuestionID(@PathVariable UUID questionID) {
-        List<Answer> answers = answerService.getAllAnswersByQuestionID(questionID);
-        return ResponseEntity.ok(answers);
+    public ResponseEntity<List<AnswerService.AnswerWithReplies>> getAllAnswersByQuestionID(@PathVariable UUID questionID) {
+        List<AnswerService.AnswerWithReplies> nestedAnswers = answerService.getNestedAnswers(questionID);
+        return ResponseEntity.ok(nestedAnswers);
     }
 
     @GetMapping("/getAllAnswersFromUser/{userId}")
@@ -68,12 +68,6 @@ public class AnswerController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to fetch answers: " + e.getMessage());
         }
-    }
-
-    @GetMapping("/question/{questionId}/nested")
-    public ResponseEntity<List<AnswerService.AnswerWithReplies>> getNestedAnswers(@PathVariable UUID questionId) {
-        List<AnswerService.AnswerWithReplies> nestedAnswers = answerService.getNestedAnswers(questionId);
-        return ResponseEntity.ok(nestedAnswers);
     }
 
     @PutMapping("/{answerId}")
@@ -113,9 +107,8 @@ public class AnswerController {
         }
     }
 
-    
-    @PostMapping("/{answerId}/upvote")
-    public ResponseEntity<?> upvoteAnswer(
+    @PostMapping("/upvote/{answerId}")
+    public ResponseEntity<?> upVoteAnswer(
             @PathVariable UUID answerId,
             @RequestParam UUID userId) {
         try {
@@ -127,8 +120,8 @@ public class AnswerController {
         }
     }
 
-    @PostMapping("/{answerId}/downvote")
-    public ResponseEntity<?> downvoteAnswer(
+    @PostMapping("/downvote/{answerId}")
+    public ResponseEntity<?> downVoteAnswer(
             @PathVariable UUID answerId,
             @RequestParam UUID userId) {
         try {
@@ -139,9 +132,9 @@ public class AnswerController {
                     .body("Failed to downvote answer: " + e.getMessage());
         }
     }
-    
 
-    @PostMapping("/markBestAnswer/{answerId}")
+
+    @PutMapping("/markBestAnswer/{answerId}")
     public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId, @RequestParam UUID loggedInUser) {
         this.answerService.markBestAnswer(answerId, loggedInUser);
 
