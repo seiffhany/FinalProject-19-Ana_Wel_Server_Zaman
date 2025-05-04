@@ -8,23 +8,16 @@ import com.example.answer_service.commands.receiver.AnswerReceiver;
 import com.example.answer_service.dto.CommandDto;
 import com.example.answer_service.model.Answer;
 import com.example.answer_service.repositories.AnswerRepository;
-import com.example.answer_service.dto.UpdateAnswerRequest;
 import com.example.answer_service.strategy_design_pattern.FilterByRecency;
 import com.example.answer_service.strategy_design_pattern.FilterByReplies;
 import com.example.answer_service.strategy_design_pattern.FilterByVotes;
 import com.example.answer_service.strategy_design_pattern.FilterContext;
 import com.example.answer_service.commands.concretecommands.UpVoteCommand;
 import com.example.answer_service.commands.concretecommands.DownVoteCommand;
-import com.example.answer_service.commands.receiver.AnswerReceiver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -35,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class AnswerService {
-    private AnswerRepository answerRepository;
+    private final AnswerRepository answerRepository;
     private QuestionClient questionClient;
     private FilterContext filterContext;
     private AnswerReceiver answerReceiver;
@@ -75,9 +68,13 @@ public class AnswerService {
             }
             UUID parentID = answer.getParentID();
             Answer retrievedParentAnswer = this.answerRepository.findAnswerById(parentID);
-            if (retrievedParentAnswer.getId() != null) {
-                Answer newAnswer = new Answer(answer.getParentID(), answer.getQuestionID(), loggedInUser, answer.getContent());
-                return this.answerRepository.save(newAnswer);
+            if (retrievedParentAnswer != null) {
+                if (retrievedParentAnswer.getQuestionID().equals(answer.getQuestionID())) {
+                    Answer newAnswer = new Answer(answer.getParentID(), answer.getQuestionID(), loggedInUser, answer.getContent());
+                    return this.answerRepository.save(newAnswer);
+                }
+                else
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This parent answer ID doesn't belong to the same question ID of the input question ID");
             } else
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This parent answer ID doesn't exist");
         } catch (ResourceNotFoundException ex) {
