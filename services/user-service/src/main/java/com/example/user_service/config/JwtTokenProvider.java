@@ -122,7 +122,7 @@ public class JwtTokenProvider {
      * @param token The JWT token from which to extract the expiration date.
      * @return The expiration date extracted from the token.
      */
-    private Date extractExpiration(String token) {
+    public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
@@ -215,6 +215,12 @@ public class JwtTokenProvider {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
+    /**
+     * This method retrieves the signing key used to sign the JWT token.
+     * It decodes the secret key from Base64 and creates a Key object.
+     *
+     * @return The signing key as a Key object.
+     */
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
