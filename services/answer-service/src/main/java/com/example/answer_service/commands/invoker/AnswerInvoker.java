@@ -3,9 +3,11 @@ package com.example.answer_service.commands.invoker;
 import com.example.answer_service.commands.command.Command;
 import com.example.answer_service.dto.CommandDto;
 import com.example.answer_service.model.Answer;
+import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+@Component
 public class AnswerInvoker {
     private Command command;
 

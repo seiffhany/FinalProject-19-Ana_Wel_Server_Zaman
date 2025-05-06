@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,23 +33,22 @@ public class AnswerService {
     private final AnswerRepository answerRepository;
     private QuestionClient questionClient;
     private FilterContext filterContext;
-    private AnswerReceiver answerReceiver;
-    private Command downVoteCommand;
-    private Command upVoteCommand;
-    private Command markBestAnswerCommand;
     private AnswerInvoker answerInvoker;
+    private AnswerReceiver answerReceiver;
 
     @Autowired
-    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext
-            , AnswerReceiver answerReceiver) {
+    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext, AnswerInvoker answerInvoker, AnswerReceiver answerReceiver) {
         this.answerRepository = answerRepository;
         this.questionClient = questionClient;
         this.filterContext = filterContext;
-        this.answerReceiver = new AnswerReceiver(answerRepository);
-        this.downVoteCommand = new DownVoteCommand(answerReceiver);
-        this.upVoteCommand = new UpVoteCommand(answerReceiver);
-        this.markBestAnswerCommand = new MarkBestAnswerCommand(answerReceiver);
-        this.answerInvoker = new AnswerInvoker();
+        this.answerInvoker = answerInvoker;
+        this.answerReceiver = answerReceiver;
+    }
+
+    public static Object createInstance(String className, Class<?>[] paramTypes, Object... args) throws ClassNotFoundException, NoSuchMethodException,
+            InstantiationException, IllegalAccessException, InvocationTargetException {
+        Class<?> clazz = Class.forName(className);
+        return clazz.getDeclaredConstructor(paramTypes).newInstance(args);
     }
 
     public Answer addAnswer(Answer answer, UUID loggedInUser) {
@@ -72,8 +73,7 @@ public class AnswerService {
                 if (retrievedParentAnswer.getQuestionID().equals(answer.getQuestionID())) {
                     Answer newAnswer = new Answer(answer.getParentID(), answer.getQuestionID(), loggedInUser, answer.getContent());
                     return this.answerRepository.save(newAnswer);
-                }
-                else
+                } else
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This parent answer ID doesn't belong to the same question ID of the input question ID");
             } else
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This parent answer ID doesn't exist");
@@ -125,25 +125,28 @@ public class AnswerService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A reply cannot be marked as best answer");
         }
 
+        try {
+            Command markBestAnswerCommand = (Command) createInstance("com.example.answer_service.commands.concretecommands.MarkBestAnswerCommand", new Class<?>[]{AnswerReceiver.class}, answerReceiver);
+            answerInvoker.setCommand(markBestAnswerCommand);
 
-        this.answerInvoker.setCommand(this.markBestAnswerCommand);
-
-        List<Answer> allAnswers = answerRepository.findByQuestionID(answer.getQuestionID());
-        for (Answer a : allAnswers) {
-            if (a.isBestAnswer() && !a.getId().equals(answer.getId())) {
-                this.answerInvoker.undoOption(new CommandDto(a, loggedInUser));
+            List<Answer> allAnswers = answerRepository.findByQuestionID(answer.getQuestionID());
+            for (Answer a : allAnswers) {
+                if (a.isBestAnswer() && !a.getId().equals(answer.getId())) {
+                    answerInvoker.undoOption(new CommandDto(a, loggedInUser));
+                }
             }
-        }
 
-        CommandDto commandDto = new CommandDto(answer, loggedInUser);
+            CommandDto commandDto = new CommandDto(answer, loggedInUser);
 
-        if (answer.isBestAnswer()) {
-            this.answerInvoker.undoOption(commandDto);
-            return;
+            if (answer.isBestAnswer()) {
+                answerInvoker.undoOption(commandDto);
+                return;
+            }
+            answerInvoker.pressOption(commandDto);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        this.answerInvoker.pressOption(commandDto);
     }
-
 
     public void upVoteAnswer(UUID answerId, UUID loggedInUser) {
         //            questionClient.getQuestionByID(answer.getQuestionID());
@@ -154,62 +157,73 @@ public class AnswerService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found with id: " + answerId);
         }
 
-        CommandDto commandDto = new CommandDto(answer, loggedInUser);
-
-        // Check if user has already upvoted
-        if (answer.getUpVoters() != null && answer.getUpVoters().contains(loggedInUser)) {
-            // User has already upvoted, so remove the upvote
-            this.answerInvoker.setCommand(this.upVoteCommand);
-            this.answerInvoker.undoOption(commandDto);
-            return;
-        }
-
-        // If user has downvoted remove the downvote first
-        if (answer.getDownVoters() != null && answer.getDownVoters().contains(loggedInUser)) {
-            this.answerInvoker.setCommand(this.downVoteCommand);
-            this.answerInvoker.undoOption(commandDto);
-        }
-
         try {
-            this.answerInvoker.setCommand(this.upVoteCommand);
-            this.answerInvoker.pressOption(commandDto);
-        } catch (IllegalStateException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            Command upVoteCommand = (Command) createInstance("com.example.answer_service.commands.concretecommands.UpVoteCommand", new Class<?>[]{AnswerReceiver.class}, answerReceiver);
+            Command downVoteCommand = (Command) createInstance("com.example.answer_service.commands.concretecommands.DownVoteCommand", new Class<?>[]{AnswerReceiver.class}, answerReceiver);
+            CommandDto commandDto = new CommandDto(answer, loggedInUser);
+
+            // Check if user has already upvoted
+            if (answer.getUpVoters() != null && answer.getUpVoters().contains(loggedInUser)) {
+                // User has already upvoted, so remove the upvote
+                answerInvoker.setCommand(upVoteCommand);
+                answerInvoker.undoOption(commandDto);
+                return;
+            }
+
+            // If user has downvoted remove the downvote first
+            if (answer.getDownVoters() != null && answer.getDownVoters().contains(loggedInUser)) {
+                answerInvoker.setCommand(downVoteCommand);
+                answerInvoker.undoOption(commandDto);
+            }
+
+            try {
+                answerInvoker.setCommand(upVoteCommand);
+                answerInvoker.pressOption(commandDto);
+            } catch (IllegalStateException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            }
+        } catch (Exception e) {
+
         }
     }
 
     public void downVoteAnswer(UUID answerId, UUID loggedInUser) {
         //            questionClient.getQuestionByID(answer.getQuestionID());
-
         Answer answer = answerRepository.findAnswerById(answerId);
 
         if (answer == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found with id: " + answerId);
         }
 
-        CommandDto commandDto = new CommandDto(answer, loggedInUser);
-
-        // Check if user has already downvoted
-        if (answer.getDownVoters() != null && answer.getDownVoters().contains(loggedInUser)) {
-            // User has already downvoted, so remove the downvote
-            this.answerInvoker.setCommand(this.downVoteCommand);
-            this.answerInvoker.undoOption(commandDto);
-            return;
-        }
-
-        // If user has upvoted remove the upvote first
-        if (answer.getUpVoters() != null && answer.getUpVoters().contains(loggedInUser)) {
-            this.answerInvoker.setCommand(this.upVoteCommand);
-            this.answerInvoker.undoOption(commandDto);
-        }
-
-        answer.setUserId(loggedInUser);
-
         try {
-            this.answerInvoker.setCommand(this.downVoteCommand);
-            this.answerInvoker.pressOption(commandDto);
-        } catch (IllegalStateException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            Command upVoteCommand = (Command) createInstance("com.example.answer_service.commands.concretecommands.UpVoteCommand", new Class<?>[]{AnswerReceiver.class}, answerReceiver);
+            Command downVoteCommand = (Command) createInstance("com.example.answer_service.commands.concretecommands.DownVoteCommand", new Class<?>[]{AnswerReceiver.class}, answerReceiver);
+            CommandDto commandDto = new CommandDto(answer, loggedInUser);
+
+            // Check if user has already downvoted
+            if (answer.getDownVoters() != null && answer.getDownVoters().contains(loggedInUser)) {
+                // User has already downvoted, so remove the downvote
+                answerInvoker.setCommand(downVoteCommand);
+                answerInvoker.undoOption(commandDto);
+                return;
+            }
+
+            // If user has upvoted remove the upvote first
+            if (answer.getUpVoters() != null && answer.getUpVoters().contains(loggedInUser)) {
+                answerInvoker.setCommand(upVoteCommand);
+                answerInvoker.undoOption(commandDto);
+            }
+
+            answer.setUserId(loggedInUser);
+
+            try {
+                answerInvoker.setCommand(downVoteCommand);
+                answerInvoker.pressOption(commandDto);
+            } catch (IllegalStateException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            }
+        } catch (Exception e) {
+
         }
     }
 
