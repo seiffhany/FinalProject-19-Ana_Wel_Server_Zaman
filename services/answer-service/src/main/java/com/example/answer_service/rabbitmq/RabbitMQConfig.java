@@ -1,4 +1,4 @@
-package com.example.notification_service.rabbitmq;
+package com.example.answer_service.rabbitmq;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -11,7 +11,8 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
     public static final String QUEUE_NAME = "notificationQueue";
     public static final String EXCHANGE_NAME = "notificationExchange";
-    public static final String ROUTING_KEY = "notificationRoutingKey";
+    public static final String NOTIFICATION_ROUTING_KEY = "notificationRoutingKey";
+    public static final String ANSWER_ROUTING_KEY = "answerRoutingKey";
 
     /**
      * The queue is used to store messages related to notifications.
@@ -37,7 +38,7 @@ public class RabbitMQConfig {
         return BindingBuilder
                 .bind(notificationQueue)
                 .to(notificationExchange)
-                .with(ROUTING_KEY);
+                .with(ANSWER_ROUTING_KEY);
     }
 
 }
