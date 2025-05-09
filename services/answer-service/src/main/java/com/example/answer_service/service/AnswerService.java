@@ -182,8 +182,10 @@ public class AnswerService {
             } catch (IllegalStateException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
             }
+        } catch (ResponseStatusException e) {
+            throw e; 
         } catch (Exception e) {
-
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process upvote: " + e.getMessage());
         }
     }
 
@@ -222,8 +224,10 @@ public class AnswerService {
             } catch (IllegalStateException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
             }
+        } catch (ResponseStatusException e) {
+            throw e; 
         } catch (Exception e) {
-
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process downvote: " + e.getMessage());
         }
     }
 
