@@ -76,14 +76,14 @@ public class GlobalExceptionHandler {
     /**
      * Handles custom validation errors like @NotBlank, @Size etc.
      *
-     * @param ex The exception thrown for validation
+     * @param e The exception thrown for validation
      * @return The error response with custom validation messages
      */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException ex) {
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException e) {
         Map<String, String> errors = new HashMap<>();
 
-        ex.getConstraintViolations().forEach(violation ->
+        e.getConstraintViolations().forEach(violation ->
                 errors.put(violation.getPropertyPath().toString(), violation.getMessage()));
 
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
@@ -116,8 +116,6 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleOtherExceptions(Exception e) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
     }
 }

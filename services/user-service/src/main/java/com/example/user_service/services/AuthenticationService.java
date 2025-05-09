@@ -9,13 +9,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -55,17 +63,23 @@ public class AuthenticationService {
         );
 
         // log the successful authentication
-        log.info("User {} authenticated successfully", username);
+        log.debug("User {} authenticated successfully", username);
 
         // find the user by username and check if the user is active
         var user = userRepository.findByUsernameAndIsActiveTrue(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found or inactive"));
+
+        // update the last login time
+        user.setLastLoginAt(OffsetDateTime.now());
+
+        // save the user with the updated last login time
+        userRepository.save(user);
 
         // generate a JWT token for the user
         var jwtToken = jwtTokenProvider.generateToken(user, user.getId());
 
         // log the generated token
-        log.info("Generated JWT token: {}", jwtToken);
+        log.debug("Generated JWT token: {}", jwtToken);
 
         // return the authentication response with the token
         return AuthenticationResponse.builder()
@@ -81,6 +95,7 @@ public class AuthenticationService {
      * @param authorizationHeader The Authorization header containing the JWT token.
      */
     public void logout(String authorizationHeader) {
+
         String jwt = extractJwtFromHeader(authorizationHeader);
 
         if (jwt == null || jwt.isEmpty()) {
@@ -92,6 +107,16 @@ public class AuthenticationService {
             String username = jwtTokenProvider.extractUsername(jwt);
             if (username == null || username.isEmpty()) {
                 throw new RuntimeException("Username is null or empty");
+            }
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                throw new RuntimeException("No authenticated user found in security context");
+            }
+
+            String authenticatedUsername = authentication.getName();
+            if (!username.equals(authenticatedUsername)) {
+                throw new RuntimeException("JWT token does not belong to the authenticated user");
             }
 
             User user = (User) userDetailsService.loadUserByUsername(username);
@@ -115,8 +140,8 @@ public class AuthenticationService {
             }
 
             redisTemplate.opsForValue().set(redisKey, userId.toString(), ttlSeconds, TimeUnit.SECONDS);
-            log.info("Boolean : " + redisTemplate.opsForValue().get(redisKey));
             log.info("Token blacklisted for user [{}] with TTL [{}] seconds", user.getUsername(), ttlSeconds);
+
         } catch (Exception e) {
             log.error("Logout failed: {}", e.getMessage());
             throw new RuntimeException("Failed to process token during logout: " + e.getMessage());
@@ -124,6 +149,54 @@ public class AuthenticationService {
 
 
     }
+
+    /**
+     * This method authenticates the user by checking the security context.
+     * It retrieves the authentication object and checks if the user is authenticated.
+     * If authenticated, it returns a map containing the user ID and username.
+     * It allows other services to access the authenticated user's information.
+     *
+     * @return A map containing the user ID and username.
+     */
+    public Map<String, Object> authenticate(String authorizationHeader) {
+
+        // Ensure the Authorization header is not null or empty
+        if (authorizationHeader == null || authorizationHeader.isBlank()) {
+            throw new RuntimeException("Missing Authorization header");
+        }
+
+        // Extract the JWT token from the Authorization header
+        String jwt = extractJwtFromHeader(authorizationHeader);
+        if (jwt == null || jwt.isEmpty()) {
+            throw new RuntimeException("JWT token is null or empty");
+        }
+
+        // Check if the JWT token has already been validated and authentication is set in SecurityContext
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        //  If the user is not authenticated, throw an error (this should normally not happen due to JwtAuthenticationFilter)
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("No authenticated user found in security context");
+        }
+
+        // Extract the username from the authentication object
+        String username = authentication.getName();
+
+        // Check if the username is null or empty
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if (userDetails == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        return Map.of(
+                "userId", ((User) userDetails).getId(),
+                "username", userDetails.getUsername(),
+                "roles", userDetails.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .toList()
+        );
+    }
+
 
     /**
      * This method extracts the JWT token from the Authorization header.
@@ -139,6 +212,5 @@ public class AuthenticationService {
         }
         return null;
     }
-
 
 }

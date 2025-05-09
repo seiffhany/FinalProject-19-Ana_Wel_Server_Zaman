@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * AuthenticatorController handles authentication-related requests.
  * It provides an endpoint for user login.
@@ -37,8 +39,14 @@ public class AuthenticatorController {
         return ResponseEntity.ok(authenticationService.login(request.getUsername(), request.getPassword()));
     }
 
+    /**
+     * Handles user logout requests.
+     *
+     * @param token the JWT token of the user to be logged out
+     * @return a response entity indicating successful logout
+     */
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<String> logout(@RequestHeader(value = "Authorization", required = false) String token) {
 
         // Log the incoming logout request
         log.info("Logout request received for token: {}", token);
@@ -48,5 +56,17 @@ public class AuthenticatorController {
 
         // Return a response indicating successful logout
         return ResponseEntity.ok("You have been logged out successfully");
+    }
+
+    @GetMapping("/authenticate")
+    public ResponseEntity<Map<String, Object>> authenticate(@RequestHeader(value = "Authorization", required = false) String token) {
+        // Log the incoming authentication request
+        log.info("Authentication request received");
+
+        // Call the authentication service to handle authentication
+        Map<String, Object> response = authenticationService.authenticate(token);
+
+        // Return a response indicating successful authentication
+        return ResponseEntity.ok(response);
     }
 }

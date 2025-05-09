@@ -40,8 +40,11 @@ public class SecurityConfiguration {
         http
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF protection
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers(apiBaseUrl + "/auth/**",
-                                        apiBaseUrl + "/seed/**")
+                        req.requestMatchers(
+                                        apiBaseUrl + "/auth/login",  // Permit login
+//                                        apiBaseUrl + "/auth/authenticate", // Permit authenticate endpoint
+                                        apiBaseUrl + "/seed/**"  // Permit seed data
+                                )
                                 .permitAll() // Allow all requests to the auth endpoint
                                 .anyRequest()
                                 .authenticated() // Require authentication for all other requests

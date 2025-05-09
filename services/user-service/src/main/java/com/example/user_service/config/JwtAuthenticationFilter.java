@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -61,23 +62,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Log the extracted JWT token
         log.info("Extracted JWT token: {}", jwt);
 
-        // If the token is null, continue the filter chain
-        if (jwt == null) {
-
-            // Log that the JWT token is null
-            log.info("JWT token is null, continuing filter chain without authentication");
-
+        // Check if the JWT token is null or blank
+        if (jwt == null || jwt.isBlank()) {
+            log.info("JWT token is null or blank, continuing filter chain without authentication");
             filterChain.doFilter(request, response);
             return;
-        }
-
-        // If the token is empty, continue the filter chain
-        if (jwt.isEmpty()) {
-
-            // Log that the JWT token is empty
-            log.error("JWT token is empty");
-
-            throw new RuntimeException("JWT token is empty");
         }
 
         // check if the token is blacklisted
@@ -90,7 +79,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
             // Write the response message
-            response.getWriter().write("Unauthorized: Token is blacklisted");
+//            response.getWriter().write("Unauthorized: Token is blacklisted");
             return;
         }
 
@@ -167,7 +156,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.getWriter().write("Unauthorized: Invalid token signature");
             return;
 
-        } catch (Exception e) {
+        } catch (UsernameNotFoundException e) {
+            log.warn("User not found: {}", e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Unauthorized: User not found");
+            return;
+
+        }
+        catch (Exception e) {
             log.error("Unexpected error during token validation", e);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized: Unexpected error during token validation");
