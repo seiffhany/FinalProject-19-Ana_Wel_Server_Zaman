@@ -6,6 +6,7 @@ import com.example.answer_service.model.Answer;
 import com.example.answer_service.repositories.AnswerRepository;
 import com.example.answer_service.service.AnswerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -51,9 +52,22 @@ public class AnswerController {
         try {
             List<Answer> answers = answerService.getAllAnswerByUserId(userId);
             return ResponseEntity.ok(answers);
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Answer or user not found: " + ex.getMessage());
+        } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to fetch answers: " + e.getMessage());
+                    .body("Failed to mark best answer: " + ex.getMessage());
+        }
+    }
+    @GetMapping("/getAllRepliesFromAnswer/{answerId}")
+    public ResponseEntity<?> getAllRepliesFromAnswer(@PathVariable UUID answerId) {
+        try {
+            List<Answer> answers = answerService.getRepliesByAnswerId(answerId);
+            return ResponseEntity.ok(answers);
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Answer not found: " + ex.getMessage());
         }
     }
 
@@ -101,6 +115,9 @@ public class AnswerController {
         try {
             answerService.deleteAllAnswersByQuestionId(questionID);
             return ResponseEntity.ok("Answers deleted successfully!");
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No answers found for the question ID: " + questionID);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to delete answers from the Question: " + e.getMessage());
@@ -135,10 +152,10 @@ public class AnswerController {
 
 
     @PutMapping("/markBestAnswer/{answerId}")
-    public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId, @RequestParam UUID loggedInUser) {
+    public ResponseEntity<String> markBestAnswer(@PathVariable UUID answerId, @RequestParam UUID loggedInUser) {
         this.answerService.markBestAnswer(answerId, loggedInUser);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("Marked Message");
     }
 
     @GetMapping("/getFilteredAnswers/{questionId}")
