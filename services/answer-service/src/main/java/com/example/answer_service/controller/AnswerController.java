@@ -1,7 +1,9 @@
 package com.example.answer_service.controller;
 
+import com.example.answer_service.commands.receiver.AnswerReceiver;
 import com.example.answer_service.dto.UpdateAnswerRequest;
 import com.example.answer_service.model.Answer;
+import com.example.answer_service.repositories.AnswerRepository;
 import com.example.answer_service.service.AnswerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,13 +25,13 @@ public class AnswerController {
     }
 
     @PostMapping("/addAnswer")
-    public Answer addAnswer(@RequestBody Answer answer) {
-        return this.answerService.addAnswer(answer);
+    public Answer addAnswer(@RequestBody Answer answer, @RequestParam UUID loggedInUser) {
+        return this.answerService.addAnswer(answer, loggedInUser);
     }
 
     @PostMapping("/replyToAnswer")
-    public Answer replyToAnswer(@RequestBody Answer answer) {
-        return this.answerService.replyToAnswer(answer);
+    public Answer replyToAnswer(@RequestBody Answer answer, @RequestParam UUID loggedInUser) {
+        return this.answerService.replyToAnswer(answer, loggedInUser);
     }
 
     @GetMapping("/{answerId}")
@@ -39,9 +41,9 @@ public class AnswerController {
     }
 
     @GetMapping("/getAllAnswersByQuestionID/{questionID}")
-    public ResponseEntity<List<Answer>> getAllAnswersByQuestionID(@PathVariable UUID questionID) {
-        List<Answer> answers = answerService.getAllAnswersByQuestionID(questionID);
-        return ResponseEntity.ok(answers);
+    public ResponseEntity<List<AnswerService.AnswerWithReplies>> getAllAnswersByQuestionID(@PathVariable UUID questionID) {
+        List<AnswerService.AnswerWithReplies> nestedAnswers = answerService.getNestedAnswers(questionID);
+        return ResponseEntity.ok(nestedAnswers);
     }
 
     @GetMapping("/getAllAnswersFromUser/{userId}")
@@ -105,17 +107,44 @@ public class AnswerController {
         }
     }
 
-//    Design Patterns related apis
+    @PostMapping("/upvote/{answerId}")
+    public ResponseEntity<?> upVoteAnswer(
+            @PathVariable UUID answerId,
+            @RequestParam UUID userId) {
+        try {
+            answerService.upVoteAnswer(answerId, userId);
+            return ResponseEntity.ok("Answer upvoted successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to upvote answer: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/downvote/{answerId}")
+    public ResponseEntity<?> downVoteAnswer(
+            @PathVariable UUID answerId,
+            @RequestParam UUID userId) {
+        try {
+            answerService.downVoteAnswer(answerId, userId);
+            return ResponseEntity.ok("Answer downvoted successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to downvote answer: " + e.getMessage());
+        }
+    }
+
+
+    @PutMapping("/markBestAnswer/{answerId}")
+    public ResponseEntity<Void> markBestAnswer(@PathVariable UUID answerId, @RequestParam UUID loggedInUser) {
+        this.answerService.markBestAnswer(answerId, loggedInUser);
+
+        return ResponseEntity.ok().build();
+    }
 
     @GetMapping("/getFilteredAnswers/{questionId}")
     public List<Answer> getFilteredAnswers(
             @PathVariable UUID questionId,
             @RequestParam(defaultValue = "recency") String filter) {
         return this.answerService.getFilteredAnswers(questionId, filter);
-    }
-    @GetMapping("/question/{questionId}/nested")
-    public ResponseEntity<List<AnswerService.AnswerWithReplies>> getNestedAnswers(@PathVariable UUID questionId) {
-        List<AnswerService.AnswerWithReplies> nestedAnswers = answerService.getNestedAnswers(questionId);
-        return ResponseEntity.ok(nestedAnswers);
     }
 }

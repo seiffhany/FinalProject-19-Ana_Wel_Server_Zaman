@@ -4,15 +4,8 @@ import com.example.answer_service.model.Answer;
 import com.example.answer_service.repositories.AnswerRepository;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class FilterByReplies implements FilterStrategy {
-
-    private final AnswerRepository answerRepository;
-
-    public FilterByReplies(AnswerRepository answerRepository) {
-        this.answerRepository = answerRepository;
-    }
 
     @Override
     public List<Answer> filter(List<Answer> answers) {
@@ -20,20 +13,20 @@ public class FilterByReplies implements FilterStrategy {
             return new ArrayList<>();
         }
 
-        Map<Answer, Integer> answerReplyCounts = new HashMap<>();
-
+        Map<UUID, Integer> replyCountMap = new HashMap<>();
         for (Answer answer : answers) {
-            int replyCount = getNumberOfReplies(answer);
-            answerReplyCounts.put(answer, replyCount);
+            UUID parentId = answer.getParentID();
+            if (parentId != null) {
+                replyCountMap.put(parentId, replyCountMap.getOrDefault(parentId, 0) + 1);
+            }
         }
-
-        return answerReplyCounts.entrySet().stream()
-                .sorted((entry1, entry2) -> Integer.compare(entry2.getValue(), entry1.getValue()))
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
+        return answers.stream()
+                .sorted((answer1, answer2) -> {
+                    int replies1 = replyCountMap.getOrDefault(answer1.getId(), 0);
+                    int replies2 = replyCountMap.getOrDefault(answer2.getId(), 0);
+                    return Integer.compare(replies2, replies1);
+                })
+                .toList();
     }
 
-    private int getNumberOfReplies(Answer answer) {
-        return answerRepository.findByParentID(answer.getId()).size();
-    }
 }
