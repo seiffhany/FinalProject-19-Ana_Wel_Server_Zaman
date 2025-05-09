@@ -142,6 +142,9 @@ public class AnswerService {
 
             answerRepository.delete(answer);
         }
+        else {
+            throw new RuntimeException("Answer not found with id: " + answerId);
+        }
     }
 
     public Answer getAnswerById(UUID answerId) {
