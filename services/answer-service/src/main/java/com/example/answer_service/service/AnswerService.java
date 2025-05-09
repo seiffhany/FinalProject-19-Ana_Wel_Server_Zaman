@@ -274,7 +274,7 @@ public class AnswerService {
             }
             return answers;
         } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve user's answers", ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve user's answers", ex);
         }
     }
 
@@ -287,7 +287,7 @@ public class AnswerService {
             answerRepository.deleteAll(answers);
 
         } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete answers for question", ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete answers for question", ex);
         }
     }
 
@@ -319,6 +319,14 @@ public class AnswerService {
 
     // Updated DTO to support nested replies
     public record AnswerWithReplies(Answer answer, List<AnswerWithReplies> replies) {
+    }
+
+    public List<Answer> getRepliesByAnswerId(UUID answerId) {
+        Answer answer = answerRepository.findAnswerById(answerId);
+        if (answer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found");
+        }
+        return answerRepository.findByParentID(answerId);
     }
 
 }
