@@ -8,8 +8,12 @@ import org.springframework.stereotype.Service;
 public class RabbitMQProducer {
     @Autowired
     private RabbitTemplate rabbitTemplate;
-    public void send(String message) {
+    public void send(String question, String answer, String user) {
+        String message = user + " answered the question: " + question + " with the answer: " + answer;
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
-        System.out.println("Message sent to Notification: " + message);
+    }
+    public void sendAnswerAcceptedNotification(String question) {
+        String message = "Your answer to the question: \"" + question + "\" has been accepted.";
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
     }
 }

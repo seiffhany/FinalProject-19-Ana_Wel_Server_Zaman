@@ -7,11 +7,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class RabbitMQConsumer {
-
-    private static final Logger logger = LoggerFactory.getLogger(RabbitMQConsumer.class);
-
     @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
-    public void receiveMessage(String message) {
-        System.out.println("Received message: " + message);
+    public String receiveNotification(String message) {
+        return message;
     }
 }
