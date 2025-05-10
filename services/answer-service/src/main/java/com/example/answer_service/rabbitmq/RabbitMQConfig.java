@@ -41,4 +41,26 @@ public class RabbitMQConfig {
                 .with(ANSWER_ROUTING_KEY);
     }
 
+
+    //Configuration for communication with question service
+    public static final String QUESTION_QUEUE_NAME = "questionQueue";
+    public static final String QUESTION_EXCHANGE_NAME = "questionExchange";
+    public static final String QUESTION_ROUTING_KEY = "questionRoutingKey";
+    @Bean
+    public Queue questionQueue() {
+        return new Queue(QUESTION_QUEUE_NAME);
+    }
+
+    @Bean
+    public TopicExchange questionExchange() {
+        return new TopicExchange(QUESTION_EXCHANGE_NAME);
+    }
+    @Bean
+    public Binding questionBinding(Queue questionQueue, TopicExchange questionExchange) {
+        return BindingBuilder
+                .bind(questionQueue)
+                .to(questionExchange)
+                .with(ANSWER_ROUTING_KEY);
+    }
+
 }

@@ -8,12 +8,20 @@ import org.springframework.stereotype.Service;
 public class RabbitMQProducer {
     @Autowired
     private RabbitTemplate rabbitTemplate;
-    public void send(String question, String answer, String user) {
+    public void sendAnswerNotification(String question, String answer, String user) {
         String message = user + " answered the question: " + question + " with the answer: " + answer;
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
     }
     public void sendAnswerAcceptedNotification(String question) {
         String message = "Your answer to the question: \"" + question + "\" has been accepted.";
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
+    }
+    public void sendAnswerDeletedNotification(String question) {
+        String message = "Your answer to the question: \"" + question + "\" has been deleted.";
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
+    }
+    public void sendAnswerToQuestionService(String questionId, String answerId) {
+        String message = questionId + "\n" + answerId;
+        rabbitTemplate.convertAndSend(RabbitMQConfig.QUESTION_EXCHANGE_NAME, RabbitMQConfig.QUESTION_ROUTING_KEY, message);
     }
 }

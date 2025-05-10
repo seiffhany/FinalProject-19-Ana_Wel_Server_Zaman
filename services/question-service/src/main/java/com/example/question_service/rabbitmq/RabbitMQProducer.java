@@ -39,4 +39,7 @@ public class RabbitMQProducer {
         String message = "Question " + questionContent + " tagged with " + tag + " might interest user " + userName;
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
     }
+    public void sendQuestionDeletedToAnswerService(String questionId) {
+        rabbitTemplate.convertAndSend(RabbitMQConfig.QUESTION_EXCHANGE_NAME, RabbitMQConfig.ANSWER_ROUTING_KEY, questionId);
+    }
 }
