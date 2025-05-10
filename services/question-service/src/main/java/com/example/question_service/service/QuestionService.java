@@ -1,9 +1,9 @@
-package com.example.questionservice.service;
+package com.example.question_service.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.questionservice.repository.QuestionRepository;
+import com.example.question_service.repository.QuestionRepository;
 
 @Service
 public class QuestionService {
