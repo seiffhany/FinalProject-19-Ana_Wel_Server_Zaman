@@ -272,8 +272,8 @@ public class AnswerService {
     public List<Answer> getAllAnswerByUserId(UUID userId) {
         try {
             List<Answer> answers = answerRepository.findByUserId(userId);
-            if (answers.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No answers found for user with id: " + userId);
+            if (answers == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No  user with this  id: " + userId);
             }
             return answers;
         } catch (Exception ex) {
@@ -284,8 +284,8 @@ public class AnswerService {
     public void deleteAllAnswersByQuestionId(UUID questionId) {
         try {
             List<Answer> answers = answerRepository.findByQuestionID(questionId);
-            if (answers.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No answers found for question with id: " + questionId);
+            if (answers == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No  question with this  id: " + questionId);
             }
             answerRepository.deleteAll(answers);
 
