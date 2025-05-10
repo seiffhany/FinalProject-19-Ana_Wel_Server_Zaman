@@ -22,10 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -260,7 +257,7 @@ public class AnswerService {
         try {
             return answerRepository.findAnswerById(answerId);
         } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve answer", ex);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User Not Found", ex);
         }
     }
 
@@ -284,12 +281,15 @@ public class AnswerService {
     public void deleteAllAnswersByQuestionId(UUID questionId) {
         try {
             List<Answer> answers = answerRepository.findByQuestionID(questionId);
-            if (answers == null) {
+            if (answers.isEmpty() || answers == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No  question with this  id: " + questionId);
             }
             answerRepository.deleteAll(answers);
-
-        } catch (Exception ex) {
+        }
+        catch (ResourceNotFoundException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No question found with id: " + questionId);
+        }
+        catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete answers for question", ex);
         }
     }
@@ -325,11 +325,27 @@ public class AnswerService {
     }
 
     public List<Answer> getRepliesByAnswerId(UUID answerId) {
-        Answer answer = answerRepository.findAnswerById(answerId);
-        if (answer == null) {
+        if (!answerRepository.existsById(answerId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found");
         }
-        return answerRepository.findByParentID(answerId);
+        List<Answer> allAnswers = answerRepository.findAll();
+
+        Map<UUID, List<Answer>> parentToChildren = allAnswers.stream()
+                .filter(a -> a.getParentID() != null)
+                .collect(Collectors.groupingBy(Answer::getParentID));
+
+        List<Answer> allReplies = new ArrayList<>();
+        collectAllReplies(answerId, parentToChildren, allReplies);
+        return allReplies;
+    }
+    private void collectAllReplies(UUID parentId,
+                                   Map<UUID, List<Answer>> parentToChildren,
+                                   List<Answer> result) {
+        List<Answer> directReplies = parentToChildren.getOrDefault(parentId, Collections.emptyList());
+        result.addAll(directReplies);
+        for (Answer reply : directReplies) {
+            collectAllReplies(reply.getId(), parentToChildren, result);
+        }
     }
 
 }
