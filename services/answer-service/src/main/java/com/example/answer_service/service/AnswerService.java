@@ -257,7 +257,7 @@ public class AnswerService {
         try {
             return answerRepository.findAnswerById(answerId);
         } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve answer", ex);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User Not Found", ex);
         }
     }
 
@@ -281,12 +281,15 @@ public class AnswerService {
     public void deleteAllAnswersByQuestionId(UUID questionId) {
         try {
             List<Answer> answers = answerRepository.findByQuestionID(questionId);
-            if (answers == null) {
+            if (answers.isEmpty() || answers == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No  question with this  id: " + questionId);
             }
             answerRepository.deleteAll(answers);
-
-        } catch (Exception ex) {
+        }
+        catch (ResourceNotFoundException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No question found with id: " + questionId);
+        }
+        catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete answers for question", ex);
         }
     }

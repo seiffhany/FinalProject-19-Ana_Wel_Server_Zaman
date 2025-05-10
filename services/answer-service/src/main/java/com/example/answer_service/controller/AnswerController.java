@@ -37,9 +37,17 @@ public class AnswerController {
 
     @GetMapping("/{answerId}")
     public ResponseEntity<Answer> getAnswer(@PathVariable UUID answerId) {
-        Answer answer = answerService.getAnswerById(answerId);
-        return ResponseEntity.ok(answer);
+        try {
+            Answer answer = answerService.getAnswerById(answerId);
+            return ResponseEntity.ok(answer);
+        } catch (ResponseStatusException ex) {
+            if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            throw ex;
+        }
     }
+
 
     @GetMapping("/getAllAnswersByQuestionID/{questionID}")
     public ResponseEntity<List<AnswerService.AnswerWithReplies>> getAllAnswersByQuestionID(@PathVariable UUID questionID) {
