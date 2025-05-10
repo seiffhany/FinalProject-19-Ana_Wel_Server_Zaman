@@ -22,10 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -325,11 +322,27 @@ public class AnswerService {
     }
 
     public List<Answer> getRepliesByAnswerId(UUID answerId) {
-        Answer answer = answerRepository.findAnswerById(answerId);
-        if (answer == null) {
+        if (!answerRepository.existsById(answerId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found");
         }
-        return answerRepository.findByParentID(answerId);
+        List<Answer> allAnswers = answerRepository.findAll();
+
+        Map<UUID, List<Answer>> parentToChildren = allAnswers.stream()
+                .filter(a -> a.getParentID() != null)
+                .collect(Collectors.groupingBy(Answer::getParentID));
+
+        List<Answer> allReplies = new ArrayList<>();
+        collectAllReplies(answerId, parentToChildren, allReplies);
+        return allReplies;
+    }
+    private void collectAllReplies(UUID parentId,
+                                   Map<UUID, List<Answer>> parentToChildren,
+                                   List<Answer> result) {
+        List<Answer> directReplies = parentToChildren.getOrDefault(parentId, Collections.emptyList());
+        result.addAll(directReplies);
+        for (Answer reply : directReplies) {
+            collectAllReplies(reply.getId(), parentToChildren, result);
+        }
     }
 
 }
