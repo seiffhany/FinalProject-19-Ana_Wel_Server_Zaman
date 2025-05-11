@@ -8,7 +8,8 @@ import org.springframework.stereotype.Service;
 public class RabbitMQProducer {
     @Autowired
     private RabbitTemplate rabbitTemplate;
-    public void sendNotification(String message) {
-        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.USER_ROUTING_KEY, message);
+    public void sendNotification(String userId, String message) {
+        String[] notification ={userId, message};
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.USER_ROUTING_KEY, notification);
     }
 }
