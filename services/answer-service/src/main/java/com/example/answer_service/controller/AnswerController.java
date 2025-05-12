@@ -114,6 +114,8 @@ public class AnswerController {
         try {
             answerService.upVoteAnswer(answerId, userId);
             return ResponseEntity.ok("Answer upvoted successfully!");
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to upvote answer: " + e.getMessage());
@@ -127,6 +129,8 @@ public class AnswerController {
         try {
             answerService.downVoteAnswer(answerId, userId);
             return ResponseEntity.ok("Answer downvoted successfully!");
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to downvote answer: " + e.getMessage());
