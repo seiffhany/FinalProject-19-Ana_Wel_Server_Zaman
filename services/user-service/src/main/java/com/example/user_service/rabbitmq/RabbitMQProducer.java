@@ -19,7 +19,7 @@ public class RabbitMQProducer {
     }
 
     public void sendLoginNotification(String userId, String device, String location) {
-        String[] message = {"Login", userId, device, location};
+        String[] message = {"Login", userId};
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
         System.out.println("Login notification sent: " + Arrays.toString(message));
     }
