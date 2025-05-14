@@ -7,7 +7,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Login implements Notification {
     @Id
     private String id;
-    private String type;
     private String message;
     private String timestamp;
     private boolean isRead;
@@ -15,7 +14,6 @@ public class Login implements Notification {
     private boolean isArchived;
 
     public Login(String timestamp, String recipientId) {
-        this.type = Login.class.getSimpleName();
         this.timestamp = timestamp;
         this.isRead = false;
         this.recipientId = recipientId;
@@ -29,7 +27,7 @@ public class Login implements Notification {
 
     @Override
     public String getType() {
-        return type;
+        return "EmailNotification";
     }
 
     @Override
@@ -68,7 +66,7 @@ public class Login implements Notification {
     }
     @Override
     public String formulateNotificationMessage(String[] message) {
-        this.message = "You have logged in ";
+        this.message = "You have logged in at "+ getTimestamp()+" .";
         return this.message;
     }
 }

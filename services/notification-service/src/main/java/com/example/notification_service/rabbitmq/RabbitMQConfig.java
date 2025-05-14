@@ -12,7 +12,6 @@ public class RabbitMQConfig {
     public static final String QUEUE_NAME = "notificationQueue";
     public static final String EXCHANGE_NAME = "notificationExchange";
     public static final String ROUTING_KEY = "notificationRoutingKey";
-    public static final String USER_ROUTING_KEY = "userRoutingKey";
 
     /**
      * The queue is used to store messages related to notifications.

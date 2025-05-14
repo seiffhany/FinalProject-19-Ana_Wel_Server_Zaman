@@ -8,8 +8,8 @@ import java.util.List;
 
 @Repository
 public interface NotificationRepository extends MongoRepository<Notification, String> {
-    List<Notification> findAllByRecipientIdAndArchivedIsTrue(String recipientId);
+    List<Notification> findAllByRecipientIdAndTypeAndArchivedIsTrue(String recipientId, String type);
 
-    List<Notification> findAllByRecipientIdAndArchivedIsFalse(String recipientId);
-    List<Notification> findAllByRecipientIdAndArchivedIsFalseAndReadIsFalse(String recipientId);
+    List<Notification> findAllByRecipientIdAndTypeAndArchivedIsFalse(String recipientId, String type);
+    List<Notification> findAllByRecipientIdAndTypeAndArchivedIsFalseAndReadIsFalse(String recipientId, String type);
 }

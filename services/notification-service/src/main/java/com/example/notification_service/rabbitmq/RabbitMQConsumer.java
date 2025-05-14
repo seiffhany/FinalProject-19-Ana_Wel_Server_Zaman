@@ -12,6 +12,5 @@ public class RabbitMQConsumer {
     @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
     public void consume(String[] message) {
         notificationService.sendNotification(message);
-        System.out.println("Received message: " + message);
     }
 }

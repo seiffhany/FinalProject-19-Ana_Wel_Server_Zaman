@@ -7,7 +7,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Follow implements Notification {
     @Id
     private String id;
-    private String type;
     private String message;
     private String timestamp;
     private boolean isRead;
@@ -15,7 +14,6 @@ public class Follow implements Notification {
     private boolean isArchived;
 
     public Follow(String timestamp, String recipientId) {
-        this.type = Follow.class.getSimpleName();
         this.timestamp = timestamp;
         this.isRead = false;
         this.recipientId = recipientId;
@@ -29,7 +27,7 @@ public class Follow implements Notification {
 
     @Override
     public String getType() {
-        return type;
+        return "InAppNotification";
     }
 
     @Override

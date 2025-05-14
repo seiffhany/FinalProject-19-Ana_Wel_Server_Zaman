@@ -7,7 +7,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Answer implements Notification {
     @Id
     private String id;
-    private String type;
     private String message;
     private final String timestamp;
     private boolean isRead;
@@ -16,7 +15,6 @@ public class Answer implements Notification {
     private boolean isArchived;
 
     public Answer(String timestamp, String recipientId) {
-        this.type = Answer.class.getSimpleName();
         this.timestamp = timestamp;
         this.isRead = false;
         this.recipientId = recipientId;
@@ -30,7 +28,7 @@ public class Answer implements Notification {
 
     @Override
     public String getType() {
-        return type;
+        return "EmailNotification";
     }
 
     @Override

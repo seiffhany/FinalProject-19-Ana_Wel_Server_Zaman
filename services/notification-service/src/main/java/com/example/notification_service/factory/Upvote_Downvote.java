@@ -7,7 +7,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Upvote_Downvote implements Notification{
     @Id
     private String id;
-    private String type;
     private String message;
     private String timestamp;
     private boolean isRead;
@@ -15,7 +14,6 @@ public class Upvote_Downvote implements Notification{
     private boolean isArchived;
 
     public Upvote_Downvote(String timestamp, String recipientId) {
-        this.type = Upvote_Downvote.class.getSimpleName();
         this.timestamp = timestamp;
         this.isRead = false;
         this.recipientId = recipientId;
@@ -29,7 +27,7 @@ public class Upvote_Downvote implements Notification{
 
     @Override
     public String getType() {
-        return this.type;
+        return "InAppNotification";
     }
 
     @Override
