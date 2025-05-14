@@ -40,4 +40,21 @@ public class NotificationService {
         return new ArrayList<>(notificationRepository.findAllByRecipientIdAndTypeAndArchivedIsTrue(recipientId,"InAppNotification"));
     }
 
+    public void sendNotification(String[] message){
+        //Setting up the notification using the factory
+        String type = message[0].split(" ")[0];
+        Notification notification = NotificationFactory.createNotification(type, message[1]);
+        notification.formulateNotificationMessage(message);
+        //Send In-App
+        NotificationSender sender = new NotificationSender();
+        if (notification.getType().equals("InAppNotification")){
+            sender.setStrategy(new InAppNotificationStrategy());
+        }
+        //Send via Email
+        else {
+            sender.setStrategy(new EmailNotificationStrategy());
+        }
+        sender.sendNotification(notification);
+    }
+
 }
