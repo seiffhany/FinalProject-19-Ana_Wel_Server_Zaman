@@ -27,12 +27,12 @@ public class UserController {
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable UUID id) {
-        return userService.getUserById(id);
+        return userService.getUserById(id).get();
     }
 
     @GetMapping("/email/{email}")
     public User getUserByEmail(@PathVariable String email) {
-        return userService.getUserByEmail(email);
+        return userService.getUserByEmail(email).get();
     }
 
     @GetMapping("/{id}/followers")
