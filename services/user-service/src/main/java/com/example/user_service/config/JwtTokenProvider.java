@@ -116,6 +116,17 @@ public class JwtTokenProvider {
     }
 
     /**
+     * This method extracts the email from the JWT token.
+     * It uses the extractClaim method to get the userEmail claim from the token.
+     *
+     * @param token The JWT token from which to extract the email.
+     * @return The email extracted from the token.
+     */
+    public String extractEmail(String token) {
+        return extractClaim(token, claims -> claims.get("userEmail", String.class));
+    }
+
+    /**
      * This method extracts the expiration date from the JWT token.
      * It uses the extractClaim method to get the expiration claim from the token.
      *
@@ -138,7 +149,8 @@ public class JwtTokenProvider {
     public String generateToken (
             Map<String, Object> extraClaims,
             UserDetails userDetails,
-            UUID userId
+            UUID userId,
+            String userEmail
     ) {
 
         if (userDetails == null) {
@@ -155,6 +167,7 @@ public class JwtTokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
         extraClaims.put("roles", roles);
+        extraClaims.put("userEmail", userEmail);
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
@@ -173,7 +186,7 @@ public class JwtTokenProvider {
      * @param userId The user ID to be included in the token.
      * @return The generated JWT token as a string.
      */
-    public String generateToken(UserDetails userDetails, UUID userId) {
+    public String generateToken(UserDetails userDetails, UUID userId, String userEmail) {
         if (userDetails == null) {
             throw new RuntimeException("UserDetails must not be null");
         }
@@ -182,7 +195,11 @@ public class JwtTokenProvider {
             throw new RuntimeException("UserId must not be null");
         }
 
-        return generateToken(new HashMap<>(), userDetails, userId);
+        if (userEmail == null || userEmail.isEmpty()) {
+            throw new RuntimeException("UserEmail must not be null or empty");
+        }
+
+        return generateToken(new HashMap<>(), userDetails, userId, userEmail);
     }
 
     /**

@@ -76,7 +76,7 @@ public class AuthenticationService {
         userRepository.save(user);
 
         // generate a JWT token for the user
-        var jwtToken = jwtTokenProvider.generateToken(user, user.getId());
+        var jwtToken = jwtTokenProvider.generateToken(user, user.getId(), user.getEmail());
 
         // log the generated token
         log.debug("Generated JWT token: {}", jwtToken);
