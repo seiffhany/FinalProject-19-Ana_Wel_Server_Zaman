@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lowerCaseServiceId: true
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=1
+
+        - id: question-service
+          uri: lb://question-service
+          predicates:
+            - Path=/api/questions/**
+          filters:
+            - StripPrefix=1
+
+        - id: answer-service
+          uri: lb://answer-service
+          predicates:
+            - Path=/api/answers/**
+          filters:
+            - StripPrefix=1
+
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - StripPrefix=1
+    kubernetes:
+      enabled: true
+      discovery:
+        enabled: true
+        namespace: qa-platform
+        all-namespaces: false
+        primary-port-name: http
+      reload:
+        enabled: true
+        mode: polling
+        period: 5000
+    loadbalancer:
+      ribbon:
+        enabled: false
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
