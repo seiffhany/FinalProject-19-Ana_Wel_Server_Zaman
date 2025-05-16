@@ -2,14 +2,17 @@ package com.example.user_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * AuthenticationResponse class that represents the response sent to the client after successful authentication.
+ * AuthenticationResponse class that represents the response sent to the client
+ * after successful authentication.
  * It contains the JWT token that will be used for subsequent requests.
  */
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
