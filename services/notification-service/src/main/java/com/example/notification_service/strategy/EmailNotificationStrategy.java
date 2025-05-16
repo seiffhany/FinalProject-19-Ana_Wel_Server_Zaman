@@ -18,7 +18,7 @@ public class EmailNotificationStrategy implements NotificationStrategy {
 
     @Override
     public void sendNotification(Notification notification) {
-        String email = notification.ge();
+        String email = notification.getRecipientEmail();
         String subject = "Someone You Know Posted a New Question!!";
         if (notification.getMessage().split(" ")[0].equals("Your")) {
             subject = "Your Question is getting Attention!!";

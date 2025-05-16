@@ -3,7 +3,7 @@ package com.example.notification_service.factory;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "Notifications")
-public class Upvote_Downvote extends NotificationBase implements Notification {
+public class Upvote_Downvote extends Notification {
 
     public Upvote_Downvote(String timestamp, String recipientEmail) {
         super(timestamp, recipientEmail);

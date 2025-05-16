@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.notification_service.factory.Notification;
 import com.example.notification_service.factory.NotificationFactory;
+import com.example.notification_service.factory.NotificationType;
 import com.example.notification_service.repositories.NotificationRepository;
 import com.example.notification_service.strategy.EmailNotificationStrategy;
 import com.example.notification_service.strategy.InAppNotificationStrategy;
@@ -19,12 +20,14 @@ public class NotificationService {
 
     public ArrayList<Notification> getAllNotifications(String recipientId) {
         return new ArrayList<>(
-                notificationRepository.findAllByRecipientIdAndTypeAndArchivedIsFalse(recipientId, "InAppNotification"));
+                notificationRepository.findAllByRecipientIdAndTypeAndArchivedIsFalse(recipientId,
+                        NotificationType.IN_APP_NOTIFICATION));
     }
 
     public ArrayList<Notification> getUnreadNotifications(String recipientId) {
         return new ArrayList<>(notificationRepository
-                .findAllByRecipientIdAndTypeAndArchivedIsFalseAndReadIsFalse(recipientId, "InAppNotification"));
+                .findAllByRecipientIdAndTypeAndArchivedIsFalseAndReadIsFalse(recipientId,
+                        NotificationType.IN_APP_NOTIFICATION));
     }
 
     public void markAsRead(String id) {
@@ -45,18 +48,21 @@ public class NotificationService {
 
     public ArrayList<Notification> getArchivedNotifications(String recipientId) {
         return new ArrayList<>(
-                notificationRepository.findAllByRecipientIdAndTypeAndArchivedIsTrue(recipientId, "InAppNotification"));
+                notificationRepository.findAllByRecipientIdAndTypeAndArchivedIsTrue(recipientId,
+                        NotificationType.IN_APP_NOTIFICATION));
     }
 
     public void sendNotification(String[] message) {
-        // message = [type, recipientId, email]
+        // message = [type, recipientEmail]
+
         // Setting up the notification using the factory
         String type = message[0].split(" ")[0];
         Notification notification = NotificationFactory.createNotification(type, message[1]);
         notification.formulateNotificationMessage(message);
+
         // Send In-App
         NotificationSender sender = new NotificationSender();
-        if (notification.getType().equals("InAppNotification")) {
+        if (notification.getType() == NotificationType.IN_APP_NOTIFICATION) {
             sender.setStrategy(new InAppNotificationStrategy());
         }
         // Send via Email
