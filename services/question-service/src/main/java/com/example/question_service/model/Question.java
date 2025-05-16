@@ -1,11 +1,16 @@
 package com.example.question_service.model;
 
-import jakarta.persistence.*;
-import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
 
 @Data
 @Entity
@@ -13,15 +18,15 @@ import java.util.List;
 public class Question {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
     private String title;
     private String body;
-    private String authorId; //should reference user (id) through a relation?
+    private String authorId; // should reference user (id) through a relation?
     private int voteCount;
 
-    //relation with answers?
+    // relation with answers?
 
     @ElementCollection
     private List<String> tags = new ArrayList<>();
@@ -30,11 +35,11 @@ public class Question {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

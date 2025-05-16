@@ -1,12 +1,12 @@
 package com.example.question_service.service.sort;
 
-import com.example.question_service.model.Question;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CreationDateSortStrategy implements SortStrategy{
+import com.example.question_service.model.Question;
+
+public class CreationDateSortStrategy implements SortStrategy {
 
     @Override
     public List<Question> sort(List<Question> questions, boolean ascending) {
