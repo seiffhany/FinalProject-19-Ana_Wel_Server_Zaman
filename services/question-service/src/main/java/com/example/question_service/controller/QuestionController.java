@@ -33,6 +33,11 @@ public class QuestionController {
         return null;
     }
 
+    @GetMapping("/hello")
+    public ResponseEntity<String> sayHello() {
+        return ResponseEntity.ok("Hello, World");
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Question> getQuestionById(@PathVariable Long id) {
         return null;

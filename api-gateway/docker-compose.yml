@@ -1,0 +1,13 @@
+services:
+  redis_cache:
+    image: redis:latest
+    container_name: redisCache_api_gateway
+    ports:
+      - "6379:6379"
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisInsight_api_gateway
+    ports:
+      - "5540:5540"
+    restart: always
