@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: qa-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: seiffhany/user-service:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: question-service
+  namespace: qa-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: question-service
+  template:
+    metadata:
+      labels:
+        app: question-service
+    spec:
+      containers:
+        - name: question-service
+          image: seiffhany/question-service:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: answer-service
+  namespace: qa-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: answer-service
+  template:
+    metadata:
+      labels:
+        app: answer-service
+    spec:
+      containers:
+        - name: answer-service
+          image: seiffhany/answer-service:latest
+          ports:
+            - containerPort: 8083
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: qa-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: seiffhany/notification-service:latest
+          ports:
+            - containerPort: 8084
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: qa-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: seiffhany/api-gateway:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
