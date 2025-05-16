@@ -1,5 +1,6 @@
 package com.example.user_service.controllers;
 
+import com.example.user_service.config.JwtTokenProvider;
 import com.example.user_service.models.Follower;
 import com.example.user_service.models.Role;
 import com.example.user_service.models.User;
@@ -26,15 +27,15 @@ public class DatabaseSeederController {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final FollowerRepository followerRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @GetMapping
     public ResponseEntity<String> seedDatabase() {
-
         // Create users
         User user1 = User.builder()
                 .email("alice@example.com")
                 .username("alice")
-                .password("hashedpassword1")
+                .password("$2y$10$n7A4MDByokJkuTDd5AJXgea4juGbY6m2zvxo03BGEHCGreQhfvvZ.") // password
                 .role(Role.USER)
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
@@ -44,7 +45,7 @@ public class DatabaseSeederController {
         User user2 = User.builder()
                 .email("bob@example.com")
                 .username("bob")
-                .password("hashedpassword2")
+                .password("$2y$10$HyWts7U6g8grvzW/aQcQremX8lJbTanhcD.zGfhOa4JEa7L7p8jY6") // password2
                 .role(Role.USER)
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
@@ -54,7 +55,7 @@ public class DatabaseSeederController {
         User user3 = User.builder()
                 .email("charlie@example.com")
                 .username("charlie")
-                .password("hashedpassword3")
+                .password("$2y$10$q3ihIonAU0.0q0Wvo7rUO.SX5IWV1ofmy.Mf2d0qqqZ6ef0Y3hOfi") // password3
                 .role(Role.ADMIN)
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())

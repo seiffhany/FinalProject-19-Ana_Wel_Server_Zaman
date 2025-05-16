@@ -6,8 +6,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import org.springframework.stereotype.Repository;
+
 import java.util.UUID;
 
+/**
+ * UserRepository interface that extends JpaRepository to provide CRUD operations for User entity.
+ * It contains a method to find a user by username and check if the user is active.
+ */
+@Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
     
     @Query("SELECT u FROM User u WHERE u.id = :id")
