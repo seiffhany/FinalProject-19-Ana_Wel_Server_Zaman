@@ -1,6 +1,7 @@
 package com.example.question_service.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,30 +29,7 @@ public class QuestionController {
         this.questionService = questionService;
     }
 
-    @PostMapping
-    public ResponseEntity<Question> createQuestion(@RequestBody Question question) {
-        return null;
-    }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Question> getQuestionById(@PathVariable Long id) {
-        return null;
-    }
-
-    @GetMapping
-    public ResponseEntity<List<Question>> getAllQuestions() {
-        return null;
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Question> updateQuestion(@PathVariable Long id, @RequestBody Question question) {
-        return null;
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
-        return null;
-    }
 
     @GetMapping("/search")
     public ResponseEntity<List<Question>> findQuestionsBySort(
@@ -73,5 +51,38 @@ public class QuestionController {
     @GetMapping("/author/{authorId}")
     public ResponseEntity<List<Question>> getQuestionsByAuthor(@PathVariable Long authorId) {
         return null;
+    }
+
+
+
+
+
+
+    @PostMapping
+    public ResponseEntity<Question> createQuestion(@RequestBody Question question) {
+        return ResponseEntity.ok(questionService.addQuestion(question));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Question>> getAllQuestions() {
+        return ResponseEntity.ok(questionService.getAllQuestions());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Question> getQuestionById(@PathVariable UUID id) {
+        return questionService.getQuestionById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Question> updateQuestion(@PathVariable UUID id, @RequestBody Question updated) {
+        return ResponseEntity.ok(questionService.updateQuestion(id, updated));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteQuestion(@PathVariable UUID id) {
+        questionService.deleteQuestion(id);
+        return ResponseEntity.noContent().build();
     }
 }
