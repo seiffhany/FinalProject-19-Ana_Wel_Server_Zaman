@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
@@ -31,4 +33,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT f.followed FROM Follower f WHERE f.follower.id = :id")
     List<User> getUserFollowing(@Param("id") UUID id);
+
+    Optional<User> findByUsernameAndIsActiveTrue(String username);
+    
 }
