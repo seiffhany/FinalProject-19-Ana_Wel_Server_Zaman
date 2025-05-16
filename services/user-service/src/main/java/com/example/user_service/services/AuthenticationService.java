@@ -1,11 +1,11 @@
 package com.example.user_service.services;
 
-import com.example.user_service.config.JwtTokenProvider;
-import com.example.user_service.dto.AuthenticationResponse;
-import com.example.user_service.models.User;
-import com.example.user_service.repositories.UserRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.time.OffsetDateTime;
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,17 +15,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import com.example.user_service.config.JwtTokenProvider;
+import com.example.user_service.dto.AuthenticationResponse;
+import com.example.user_service.models.User;
+import com.example.user_service.repositories.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * AuthenticationService class that handles user authentication.
@@ -45,7 +43,6 @@ public class AuthenticationService {
     // Redis key for storing the token blacklist
     private static final String TOKEN_BLACKLIST_NAME = "blacklist:";
 
-
     /**
      * This method handles user login.
      * It takes a username and password as input, authenticates the user,
@@ -57,10 +54,10 @@ public class AuthenticationService {
      */
     public AuthenticationResponse login(String username, String password) {
         // authenticate the user
-        // if the user is not found or the password is incorrect, an exception will be thrown
+        // if the user is not found or the password is incorrect, an exception will be
+        // thrown
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
-        );
+                new UsernamePasswordAuthenticationToken(username, password));
 
         // log the successful authentication
         log.debug("User {} authenticated successfully", username);
@@ -147,12 +144,12 @@ public class AuthenticationService {
             throw new RuntimeException("Failed to process token during logout: " + e.getMessage());
         }
 
-
     }
 
     /**
      * This method authenticates the user by checking the security context.
-     * It retrieves the authentication object and checks if the user is authenticated.
+     * It retrieves the authentication object and checks if the user is
+     * authenticated.
      * If authenticated, it returns a map containing the user ID and username.
      * It allows other services to access the authenticated user's information.
      *
@@ -171,10 +168,12 @@ public class AuthenticationService {
             throw new RuntimeException("JWT token is null or empty");
         }
 
-        // Check if the JWT token has already been validated and authentication is set in SecurityContext
+        // Check if the JWT token has already been validated and authentication is set
+        // in SecurityContext
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        //  If the user is not authenticated, throw an error (this should normally not happen due to JwtAuthenticationFilter)
+        // If the user is not authenticated, throw an error (this should normally not
+        // happen due to JwtAuthenticationFilter)
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new RuntimeException("No authenticated user found in security context");
         }
@@ -193,10 +192,8 @@ public class AuthenticationService {
                 "username", userDetails.getUsername(),
                 "roles", userDetails.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
-                        .toList()
-        );
+                        .toList());
     }
-
 
     /**
      * This method extracts the JWT token from the Authorization header.

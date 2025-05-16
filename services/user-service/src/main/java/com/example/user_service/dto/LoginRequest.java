@@ -1,18 +1,20 @@
 package com.example.user_service.dto;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NonNull;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * LoginRequest class that represents the request sent to the server during user login.
+ * LoginRequest class that represents the request sent to the server during user
+ * login.
  * It contains the user's email and password.
  */
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoginRequest {
 
     @NotBlank(message = "Username is required")

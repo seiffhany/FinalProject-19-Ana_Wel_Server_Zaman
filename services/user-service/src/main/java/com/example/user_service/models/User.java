@@ -1,37 +1,53 @@
 package com.example.user_service.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * User entity representing a user in the system.
  * This class implements UserDetails for Spring Security integration.
  */
 @Entity
-@Table(
-        name = "users",
-        indexes = {
-                @Index(name = "user_email_idx", columnList = "email"),
-                @Index(name = "user_username_idx", columnList = "username")
-        }
-)
+@Table(name = "users", indexes = {
+        @Index(name = "user_email_idx", columnList = "email"),
+        @Index(name = "user_username_idx", columnList = "username")
+})
 @Getter
 @Setter
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 @Builder
 public class User implements UserDetails {
 
@@ -77,6 +93,7 @@ public class User implements UserDetails {
      * This is automatically set to the current time when the user is created.
      */
     @Column(name = "created_at", nullable = false)
+    @Builder.Default
     private OffsetDateTime createdAt = OffsetDateTime.now();
 
     /**
@@ -84,6 +101,7 @@ public class User implements UserDetails {
      * This is automatically set to the current time as when the user is updated.
      */
     @Column(name = "updated_at", nullable = false)
+    @Builder.Default
     private OffsetDateTime updatedAt = OffsetDateTime.now();
 
     /**
@@ -97,13 +115,14 @@ public class User implements UserDetails {
      * This can be used to deactivate a user without deleting their account.
      */
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private boolean isActive = true;
 
     /**
      * The profile of the user.
      * This is a one-to-one relationship with the UserProfile entity.
      */
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
     private UserProfile userProfile;
 
@@ -111,16 +130,18 @@ public class User implements UserDetails {
      * The followers of this user.
      * This represents the users who are following this user.
      */
-    @OneToMany(mappedBy = "followed")
+    @OneToMany(mappedBy = "followed", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
+    @Builder.Default
     private List<Follower> followers = new ArrayList<>();
 
     /**
      * The users that this user is following.
      * This represents the users that this user is following.
      */
-    @OneToMany(mappedBy = "follower")
+    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
+    @Builder.Default
     private List<Follower> following = new ArrayList<>();
 
     /**
@@ -139,16 +160,16 @@ public class User implements UserDetails {
      * @param following   The list of users that this user is following.
      */
     public User(String email,
-                String username,
-                String password,
-                Role role,
-                OffsetDateTime createdAt,
-                OffsetDateTime updatedAt,
-                OffsetDateTime lastLoginAt,
-                boolean isActive,
-                UserProfile userProfile,
-                List<Follower> followers,
-                List<Follower> following) {
+            String username,
+            String password,
+            Role role,
+            OffsetDateTime createdAt,
+            OffsetDateTime updatedAt,
+            OffsetDateTime lastLoginAt,
+            boolean isActive,
+            UserProfile userProfile,
+            List<Follower> followers,
+            List<Follower> following) {
         this.email = email;
         this.username = username;
         this.password = password;
@@ -166,7 +187,8 @@ public class User implements UserDetails {
      * GrantedAuthority implementation for Spring Security.
      * This method returns the authorities granted to the user.
      *
-     * @return A collection of GrantedAuthority objects representing the user's roles.
+     * @return A collection of GrantedAuthority objects representing the user's
+     *         roles.
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -237,5 +259,13 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return isActive;
+    }
+
+    public List<Follower> getFollowing() {
+        return following;
+    }
+
+    public List<Follower> getFollowers() {
+        return followers;
     }
 }

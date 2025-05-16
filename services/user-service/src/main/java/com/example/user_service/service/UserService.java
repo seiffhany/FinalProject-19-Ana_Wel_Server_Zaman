@@ -1,22 +1,21 @@
 package com.example.user_service.service;
 
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.user_service.models.Follower;
 import com.example.user_service.models.FollowerId;
 import com.example.user_service.models.User;
 import com.example.user_service.models.UserProfile;
 import com.example.user_service.repositories.FollowerRepository;
-// import com.example.user_service.repositories.UserProfileRepository;
+import com.example.user_service.repositories.UserProfileRepository;
 import com.example.user_service.repositories.UserRepository;
-
-import org.aspectj.weaver.ast.Var;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class UserService {
@@ -24,12 +23,14 @@ public class UserService {
     @Autowired
     private final UserRepository userRepository;
     private final FollowerRepository followerRepository;
-    // private final UserProfileRepository userProfileRepository;
+    private final UserProfileRepository userProfileRepository;
 
     public UserService(UserRepository userRepository,
-            FollowerRepository followerRepository) {
+            FollowerRepository followerRepository,
+            UserProfileRepository userProfileRepository) {
         this.userRepository = userRepository;
         this.followerRepository = followerRepository;
+        this.userProfileRepository = userProfileRepository;
     }
 
     public List<User> getAllUsers() {
@@ -85,7 +86,7 @@ public class UserService {
         followerRepository.save(followerRelation);
 
         // Update follower counts in user profiles
-        // updateFollowerCounts(follower, userToFollow, true);
+        updateFollowerCounts(follower, userToFollow, true);
     }
 
     @Transactional
@@ -105,7 +106,7 @@ public class UserService {
         followerRepository.deleteById(followerRelationId);
 
         // Update follower counts in user profiles
-        // updateFollowerCounts(follower, userToUnfollow, false);
+        updateFollowerCounts(follower, userToUnfollow, false);
     }
 
     @Transactional
@@ -139,18 +140,27 @@ public class UserService {
             throw new IllegalArgumentException("User to delete not found");
         }
 
-        // // Delete user profile if exists
-        // if (user.getUserProfile() != null) {
-        // userProfileRepository.delete(user.getUserProfile());
-        // }
-
-        // Delete all follower relationships
-        followerRepository.deleteAll(user.getFollowers());
-        followerRepository.deleteAll(user.getFollowing());
-
         // Delete the user
         userRepository.delete(user);
         return user;
+    }
+
+    private void updateFollowerCounts(User follower, User followed, boolean isFollowing) {
+        // Update follower's following count
+        if (follower.getUserProfile() != null) {
+            UserProfile followerProfile = follower.getUserProfile();
+            followerProfile.setFollowingCount(
+                    followerProfile.getFollowingCount() + (isFollowing ? 1 : -1));
+            userProfileRepository.save(followerProfile);
+        }
+
+        // Update followed user's follower count
+        if (followed.getUserProfile() != null) {
+            UserProfile followedProfile = followed.getUserProfile();
+            followedProfile.setFollowerCount(
+                    followedProfile.getFollowerCount() + (isFollowing ? 1 : -1));
+            userProfileRepository.save(followedProfile);
+        }
     }
 
 }
