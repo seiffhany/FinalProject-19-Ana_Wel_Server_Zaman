@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.user_service.dto.AuthenticationResponse;
 import com.example.user_service.dto.LoginRequest;
+import com.example.user_service.dto.RegisterRequest;
 import com.example.user_service.services.AuthenticationService;
 
 import jakarta.validation.Valid;
@@ -44,6 +45,24 @@ public class AuthenticatorController {
 
         // Call the authentication service to handle login
         return ResponseEntity.ok(authenticationService.login(request.getUsername(), request.getPassword()));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest request) {
+
+        // Log the incoming login request
+        log.info("Register request received for username: {}", request.getUsername());
+
+        // Call the authentication service to handle login
+        return ResponseEntity.ok(authenticationService.register(request.getEmail(),
+                request.getUsername(),
+                request.getPassword(),
+                request.getRole(),
+                request.getFullName(),
+                request.getBio(),
+                request.getProfilePictureUrl(),
+                request.getLocation())
+        );
     }
 
     /**
