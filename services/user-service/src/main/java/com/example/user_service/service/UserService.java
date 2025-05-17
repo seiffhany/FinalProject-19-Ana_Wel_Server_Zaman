@@ -86,7 +86,7 @@ public class UserService {
         followerRepository.save(followerRelation);
 
         // Update follower counts in user profiles
-        updateFollowerCounts(follower, userToFollow, true);
+        // updateFollowerCounts(follower, userToFollow, true);
     }
 
     @Transactional
@@ -106,7 +106,7 @@ public class UserService {
         followerRepository.deleteById(followerRelationId);
 
         // Update follower counts in user profiles
-        updateFollowerCounts(follower, userToUnfollow, false);
+        // updateFollowerCounts(follower, userToUnfollow, false);
     }
 
     @Transactional
@@ -145,22 +145,23 @@ public class UserService {
         return user;
     }
 
-    private void updateFollowerCounts(User follower, User followed, boolean isFollowing) {
-        // Update follower's following count
-        if (follower.getUserProfile() != null) {
-            UserProfile followerProfile = follower.getUserProfile();
-            followerProfile.setFollowingCount(
-                    followerProfile.getFollowingCount() + (isFollowing ? 1 : -1));
-            userProfileRepository.save(followerProfile);
-        }
+    // private void updateFollowerCounts(User follower, User followed, boolean
+    // isFollowing) {
+    // // Update follower's following count
+    // if (follower.getUserProfile() != null) {
+    // UserProfile followerProfile = follower.getUserProfile();
+    // followerProfile.setFollowingCount(
+    // followerProfile.getFollowingCount() + (isFollowing ? 1 : -1));
+    // userProfileRepository.save(followerProfile);
+    // }
 
-        // Update followed user's follower count
-        if (followed.getUserProfile() != null) {
-            UserProfile followedProfile = followed.getUserProfile();
-            followedProfile.setFollowerCount(
-                    followedProfile.getFollowerCount() + (isFollowing ? 1 : -1));
-            userProfileRepository.save(followedProfile);
-        }
-    }
+    // // Update followed user's follower count
+    // if (followed.getUserProfile() != null) {
+    // UserProfile followedProfile = followed.getUserProfile();
+    // followedProfile.setFollowerCount(
+    // followedProfile.getFollowerCount() + (isFollowing ? 1 : -1));
+    // userProfileRepository.save(followedProfile);
+    // }
+    // }
 
 }

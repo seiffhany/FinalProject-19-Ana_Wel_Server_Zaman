@@ -1,19 +1,26 @@
 package com.example.user_service.config;
 
+import java.security.Key;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.security.Key;
-import java.util.*;
-import java.util.function.Function;
 
 /**
- * JwtTokenProvider class that provides methods for generating and validating JWT tokens.
- * This class is responsible for creating JWT tokens and extracting information from them.
+ * JwtTokenProvider class that provides methods for generating and validating
+ * JWT tokens.
+ * This class is responsible for creating JWT tokens and extracting information
+ * from them.
  */
 public class JwtTokenProvider {
     private static volatile JwtTokenProvider instance;
@@ -27,9 +34,10 @@ public class JwtTokenProvider {
 
     /**
      * This method returns a singleton instance of JwtTokenProvider.
-     * It ensures that only one instance of the class is created and used throughout the application.
+     * It ensures that only one instance of the class is created and used throughout
+     * the application.
      *
-     * @param secretKey The secret key for signing the JWT token.
+     * @param secretKey      The secret key for signing the JWT token.
      * @param expirationTime The expiration time for the JWT token in milliseconds.
      * @return The singleton instance of JwtTokenProvider.
      */
@@ -71,9 +79,10 @@ public class JwtTokenProvider {
      * This method extracts a specific claim from the JWT token.
      * It uses a claims resolver function to extract the desired claim.
      *
-     * @param token The JWT token from which to extract the claim.
-     * @param claimsResolver A function that takes Claims as input and returns the desired claim.
-     * @param <T> The type of the claim to be extracted.
+     * @param token          The JWT token from which to extract the claim.
+     * @param claimsResolver A function that takes Claims as input and returns the
+     *                       desired claim.
+     * @param <T>            The type of the claim to be extracted.
      * @return The extracted claim of type T.
      */
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -138,20 +147,22 @@ public class JwtTokenProvider {
     }
 
     /**
-     * This method generates a JWT token using the provided extra claims and user details.
-     * It sets the subject (username), issued date, expiration date, and signs the token with the signing key.
+     * This method generates a JWT token using the provided extra claims and user
+     * details.
+     * It sets the subject (username), issued date, expiration date, and signs the
+     * token with the signing key.
      *
      * @param extraClaims A map of extra claims to be included in the token.
-     * @param userDetails The user details object containing the username and other information.
-     * @param userId The user ID to be included in the token.
+     * @param userDetails The user details object containing the username and other
+     *                    information.
+     * @param userId      The user ID to be included in the token.
      * @return The generated JWT token as a string.
      */
-    public String generateToken (
+    public String generateToken(
             Map<String, Object> extraClaims,
             UserDetails userDetails,
             UUID userId,
-            String userEmail
-    ) {
+            String userEmail) {
 
         if (userDetails == null) {
             throw new RuntimeException("UserDetails must not be null");
@@ -180,10 +191,12 @@ public class JwtTokenProvider {
 
     /**
      * This method generates a JWT token using the provided user details.
-     * It sets the subject (username), issued date, expiration date, and signs the token with the signing key.
+     * It sets the subject (username), issued date, expiration date, and signs the
+     * token with the signing key.
      *
-     * @param userDetails The user details object containing the username and other information.
-     * @param userId The user ID to be included in the token.
+     * @param userDetails The user details object containing the username and other
+     *                    information.
+     * @param userId      The user ID to be included in the token.
      * @return The generated JWT token as a string.
      */
     public String generateToken(UserDetails userDetails, UUID userId, String userEmail) {
@@ -215,10 +228,12 @@ public class JwtTokenProvider {
 
     /**
      * This method checks if the JWT token is valid.
-     * It compares the username in the token with the provided user details and checks if the token is expired.
+     * It compares the username in the token with the provided user details and
+     * checks if the token is expired.
      *
-     * @param token The JWT token to be validated.
-     * @param userDetails The user details object containing the username and other information.
+     * @param token       The JWT token to be validated.
+     * @param userDetails The user details object containing the username and other
+     *                    information.
      * @return true if the token is valid, false otherwise.
      */
     public boolean isTokenValid(String token, UserDetails userDetails) {
