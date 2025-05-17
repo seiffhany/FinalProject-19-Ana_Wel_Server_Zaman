@@ -14,7 +14,6 @@ import com.example.user_service.models.FollowerId;
 import com.example.user_service.models.User;
 import com.example.user_service.models.UserProfile;
 import com.example.user_service.repositories.FollowerRepository;
-import com.example.user_service.repositories.UserProfileRepository;
 import com.example.user_service.repositories.UserRepository;
 
 @Service
@@ -23,14 +22,11 @@ public class UserService {
     @Autowired
     private final UserRepository userRepository;
     private final FollowerRepository followerRepository;
-    private final UserProfileRepository userProfileRepository;
 
     public UserService(UserRepository userRepository,
-            FollowerRepository followerRepository,
-            UserProfileRepository userProfileRepository) {
+            FollowerRepository followerRepository) {
         this.userRepository = userRepository;
         this.followerRepository = followerRepository;
-        this.userProfileRepository = userProfileRepository;
     }
 
     public List<User> getAllUsers() {
@@ -66,9 +62,9 @@ public class UserService {
     }
 
     @Transactional
-    public void followUser(UUID id, UUID followerId) {
-        var userToFollowOpt = userRepository.findById(id);
-        var followerOpt = userRepository.findById(followerId);
+    public void followUser(UUID id, UUID followedId) {
+        var followerOpt = userRepository.findById(id);
+        var userToFollowOpt = userRepository.findById(followedId);
 
         if (userToFollowOpt.isEmpty() || followerOpt.isEmpty()) {
             throw new IllegalArgumentException("User not found");
@@ -91,8 +87,8 @@ public class UserService {
 
     @Transactional
     public void unFollowUser(UUID id, UUID followerId) {
-        User userToUnfollow = userRepository.findById(id).get();
-        User follower = userRepository.findById(followerId).get();
+        User userToUnfollow = userRepository.findById(followerId).get();
+        User follower = userRepository.findById(id).get();
 
         if (userToUnfollow == null || follower == null) {
             throw new IllegalArgumentException("User not found");
@@ -125,7 +121,7 @@ public class UserService {
     public User activateUser(UUID id) {
         User user = userRepository.findById(id).get();
         if (user == null) {
-            throw new IllegalArgumentException("User activate not found");
+            throw new IllegalArgumentException("User to activate not found");
         }
 
         user.setActive(true);

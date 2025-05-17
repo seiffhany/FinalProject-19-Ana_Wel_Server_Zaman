@@ -49,15 +49,15 @@ public class UserController {
         return userService.getUserFollowing(id);
     }
 
-    @PutMapping("/{id}/follow/{followerId}")
-    public ResponseEntity<String> followUser(@PathVariable UUID id, @PathVariable UUID followerId) {
-        userService.followUser(id, followerId);
+    @PutMapping("/{id}/follow/{followedId}") // Will Change to use User Token
+    public ResponseEntity<String> followUser(@PathVariable UUID id, @PathVariable UUID followedId) {
+        userService.followUser(id, followedId);
         return ResponseEntity.ok("Followed successfully");
     }
 
-    @PutMapping("/{id}/unfollow/{followerId}")
-    public ResponseEntity<String> unfollowUser(@PathVariable UUID id, @PathVariable UUID followerId) {
-        userService.unFollowUser(id, followerId);
+    @PutMapping("/{id}/unfollow/{followedId}") // Will Change to use User Token
+    public ResponseEntity<String> unfollowUser(@PathVariable UUID id, @PathVariable UUID followedId) {
+        userService.unFollowUser(id, followedId);
         return ResponseEntity.ok("Unfollowed successfully");
     }
 
