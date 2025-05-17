@@ -63,10 +63,10 @@ public class AuthenticationService {
      */
     public AuthenticationResponse login(String username, String password) {
         // authenticate the user
-        // if the user is not found or the password is incorrect, an exception will be thrown
+        // if the user is not found or the password is incorrect, an exception will be
+        // thrown
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
-        );
+                new UsernamePasswordAuthenticationToken(username, password));
 
         // log the successful authentication
         log.debug("User {} authenticated successfully", username);
@@ -82,7 +82,7 @@ public class AuthenticationService {
         userRepository.save(user);
 
         // generate a JWT token for the user
-        var jwtToken = jwtTokenProvider.generateToken(user, user.getId());
+        var jwtToken = jwtTokenProvider.generateToken(user, user.getId(), user.getEmail());
 
         // log the generated token
         log.debug("Generated JWT token: {}", jwtToken);
@@ -169,7 +169,7 @@ public class AuthenticationService {
         log.debug("User {} registered successfully", username);
 
         // generate a JWT token for the user
-        var jwtToken = jwtTokenProvider.generateToken(user, user.getId());
+        var jwtToken = jwtTokenProvider.generateToken(user, user.getId(), user.getEmail());
 
         // log the generated token
         log.debug("Generated JWT token: {}", jwtToken);

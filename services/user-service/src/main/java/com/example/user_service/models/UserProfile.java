@@ -1,27 +1,44 @@
 package com.example.user_service.models;
 
-import com.example.user_service.models.User;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
-
-import java.time.OffsetDateTime;
 import java.util.UUID;
+
+import org.hibernate.annotations.Formula;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * UserProfile entity representing a user's profile information.
  * This entity is linked to the User entity with a one-to-one relationship.
  */
 @Entity
-@Table(name = "user_profiles")
+@Table(name = "user_profiles", indexes = {
+        @Index(name = "idx_user_profile_user_id", columnList = "user_id"),
+        @Index(name = "idx_user_profile_full_name", columnList = "full_name")
+})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "user")
+@ToString(of = { "id", "fullName", "location" })
 public class UserProfile {
 
     /**
@@ -58,18 +75,28 @@ public class UserProfile {
 
     /**
      * The number of followers the user has.
+     * This is calculated on-the-fly using a SQL query.
+     * This field is read-only and cannot be modified directly.
      */
-    @Column(name = "follower_count", nullable = false)
-    private int followerCount = 0;
+    @Getter(AccessLevel.PUBLIC)
+    @Setter(AccessLevel.NONE)
+    @Formula("(SELECT COUNT(*) FROM followers f WHERE f.followed_id = user_id)")
+    @JsonProperty("followerCount")
+    private final Long followerCount = 0L;
 
     /**
      * The number of users the user is following.
+     * This is calculated on-the-fly using a SQL query.
+     * This field is read-only and cannot be modified directly.
      */
-    @Column(name = "following_count", nullable = false)
-    private int followingCount = 0;
+    @Getter(AccessLevel.PUBLIC)
+    @Setter(AccessLevel.NONE)
+    @Formula("(SELECT COUNT(*) FROM followers f WHERE f.follower_id = user_id)")
+    @JsonProperty("followingCount")
+    private final Long followingCount = 0L;
 
     /**
-     * The date and time when the user profile was created.
+     * The user associated with this profile.
      */
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
@@ -77,29 +104,40 @@ public class UserProfile {
     private User user;
 
     /**
-     * Constructor to create a UserProfile entity with the user's profile information.
+     * Constructor to create a UserProfile entity with the user's profile
+     * information.
      *
      * @param fullName          The full name of the user.
      * @param bio               A short biography or description of the user.
      * @param profilePictureUrl The URL of the user's profile picture.
      * @param location          The location of the user.
-     * @param followerCount     The number of followers the user has.
-     * @param followingCount    The number of users the user is following.
      * @param user              The user associated with this profile.
      */
     public UserProfile(String fullName,
-                       String bio,
-                       String profilePictureUrl,
-                       String location,
-                       int followerCount,
-                       int followingCount,
-                       User user) {
+            String bio,
+            String profilePictureUrl,
+            String location,
+            User user) {
         this.fullName = fullName;
         this.bio = bio;
         this.profilePictureUrl = profilePictureUrl;
         this.location = location;
-        this.followerCount = followerCount;
-        this.followingCount = followingCount;
         this.user = user;
+    }
+
+    /**
+     * Builder class needs to be customized to handle final fields
+     */
+    public static class UserProfileBuilder {
+        // These methods are no-ops since the fields are calculated
+        public UserProfileBuilder followerCount(Long followerCount) {
+            // No-op since this is a calculated field
+            return this;
+        }
+
+        public UserProfileBuilder followingCount(Long followingCount) {
+            // No-op since this is a calculated field
+            return this;
+        }
     }
 }
