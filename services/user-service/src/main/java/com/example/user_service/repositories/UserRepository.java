@@ -14,4 +14,6 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByUsernameAndIsActiveTrue(String username); // find user by username and check if the user is active
+    boolean existsByEmail(String email); // check if user with specified email exists.
+    boolean existsByUsername(String username); // checks if user with specified username exists.
 }

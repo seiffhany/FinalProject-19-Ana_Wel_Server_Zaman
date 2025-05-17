@@ -60,13 +60,13 @@ public class UserProfile {
      * The number of followers the user has.
      */
     @Column(name = "follower_count", nullable = false)
-    private int followerCount;
+    private int followerCount = 0;
 
     /**
      * The number of users the user is following.
      */
     @Column(name = "following_count", nullable = false)
-    private int followingCount;
+    private int followingCount = 0;
 
     /**
      * The date and time when the user profile was created.

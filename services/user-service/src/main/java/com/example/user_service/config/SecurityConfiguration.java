@@ -42,7 +42,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(
                                         apiBaseUrl + "/auth/login",  // Permit login
-//                                        apiBaseUrl + "/auth/authenticate", // Permit authenticate endpoint
+                                        apiBaseUrl + "/auth/register", // Permit authenticate endpoint
                                         apiBaseUrl + "/seed/**"  // Permit seed data
                                 )
                                 .permitAll() // Allow all requests to the auth endpoint
