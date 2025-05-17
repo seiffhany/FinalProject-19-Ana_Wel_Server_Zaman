@@ -11,7 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -131,7 +131,7 @@ public class User implements UserDetails {
      * This represents the users who are following this user.
      */
     @OneToMany(mappedBy = "followed", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonIgnore
     @Builder.Default
     private List<Follower> followers = new ArrayList<>();
 
@@ -140,7 +140,7 @@ public class User implements UserDetails {
      * This represents the users that this user is following.
      */
     @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonIgnore
     @Builder.Default
     private List<Follower> following = new ArrayList<>();
 

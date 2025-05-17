@@ -2,9 +2,11 @@ package com.example.user_service.models;
 
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.hibernate.annotations.Formula;
 
-import jakarta.persistence.CascadeType;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,6 +16,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,7 +38,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(of = { "id", "fullName", "location", "followerCount", "followingCount" })
+@ToString(of = { "id", "fullName", "location" })
 public class UserProfile {
 
     /**
@@ -72,24 +75,30 @@ public class UserProfile {
 
     /**
      * The number of followers the user has.
-     * This is stored in the database and updated when followers change.
+     * This is calculated on-the-fly using a SQL query.
+     * This field is read-only and cannot be modified directly.
      */
-    @Column(name = "follower_count", nullable = false)
-    @Builder.Default
-    private int followerCount = 0;
+    @Getter(AccessLevel.PUBLIC)
+    @Setter(AccessLevel.NONE)
+    @Formula("(SELECT COUNT(*) FROM followers f WHERE f.followed_id = user_id)")
+    @JsonProperty("followerCount")
+    private final Long followerCount = 0L;
 
     /**
      * The number of users the user is following.
-     * This is stored in the database and updated when following changes.
+     * This is calculated on-the-fly using a SQL query.
+     * This field is read-only and cannot be modified directly.
      */
-    @Column(name = "following_count", nullable = false)
-    @Builder.Default
-    private int followingCount = 0;
+    @Getter(AccessLevel.PUBLIC)
+    @Setter(AccessLevel.NONE)
+    @Formula("(SELECT COUNT(*) FROM followers f WHERE f.follower_id = user_id)")
+    @JsonProperty("followingCount")
+    private final Long followingCount = 0L;
 
     /**
      * The user associated with this profile.
      */
-    @OneToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH })
+    @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     @JsonManagedReference
     private User user;
@@ -103,22 +112,32 @@ public class UserProfile {
      * @param profilePictureUrl The URL of the user's profile picture.
      * @param location          The location of the user.
      * @param user              The user associated with this profile.
-     * @param followerCount     The initial number of followers.
-     * @param followingCount    The initial number of following.
      */
     public UserProfile(String fullName,
             String bio,
             String profilePictureUrl,
             String location,
-            User user,
-            int followerCount,
-            int followingCount) {
+            User user) {
         this.fullName = fullName;
         this.bio = bio;
         this.profilePictureUrl = profilePictureUrl;
         this.location = location;
         this.user = user;
-        this.followerCount = followerCount;
-        this.followingCount = followingCount;
+    }
+
+    /**
+     * Builder class needs to be customized to handle final fields
+     */
+    public static class UserProfileBuilder {
+        // These methods are no-ops since the fields are calculated
+        public UserProfileBuilder followerCount(Long followerCount) {
+            // No-op since this is a calculated field
+            return this;
+        }
+
+        public UserProfileBuilder followingCount(Long followingCount) {
+            // No-op since this is a calculated field
+            return this;
+        }
     }
 }

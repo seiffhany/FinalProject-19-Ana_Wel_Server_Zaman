@@ -4,7 +4,6 @@ import java.time.OffsetDateTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -48,7 +47,7 @@ public class Follower {
     /**
      * The user who is following another user.
      */
-    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH })
+    @ManyToOne
     @MapsId("followerId") // Maps the followerId in the composite key
     @JoinColumn(name = "follower_id")
     @JsonBackReference
@@ -57,7 +56,7 @@ public class Follower {
     /**
      * The user who is being followed.
      */
-    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH })
+    @ManyToOne
     @MapsId("followedId") // Maps the followedId in the composite key
     @JoinColumn(name = "followed_id")
     @JsonBackReference
