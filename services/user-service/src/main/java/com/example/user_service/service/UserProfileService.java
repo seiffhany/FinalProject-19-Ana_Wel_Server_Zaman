@@ -4,9 +4,13 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.user_service.config.RedisCacheConfig;
 import com.example.user_service.models.User;
 import com.example.user_service.models.UserProfile;
 import com.example.user_service.repositories.UserProfileRepository;
@@ -19,7 +23,9 @@ public class UserProfileService {
   private final UserRepository userRepository;
 
   @Autowired
-  public UserProfileService(UserProfileRepository userProfileRepository, UserRepository userRepository) {
+  public UserProfileService(
+      UserProfileRepository userProfileRepository,
+      UserRepository userRepository) {
     this.userProfileRepository = userProfileRepository;
     this.userRepository = userRepository;
   }
@@ -28,33 +34,37 @@ public class UserProfileService {
     return userProfileRepository.findAll();
   }
 
-  public UserProfile getProfileById(UUID id) {
-    return userProfileRepository.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Profile not found with id: " + id));
+  @Cacheable(value = RedisCacheConfig.USER_PROFILE_CACHE, key = "#userId")
+  public UserProfile getProfileById(UUID userId) {
+    return userProfileRepository.findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("Profile not found for user id: " + userId));
   }
 
+  @Cacheable(value = RedisCacheConfig.USER_PROFILE_CACHE, key = "#userId")
   public UserProfile getProfileByUserId(UUID userId) {
-    return userProfileRepository.findByUserId(userId)
-        .orElseThrow(() -> new IllegalArgumentException("Profile not found with user id: " + userId));
+    return getProfileById(userId);
   }
 
   @Transactional
+  @CachePut(value = RedisCacheConfig.USER_PROFILE_CACHE, key = "#userId")
   public UserProfile createProfile(UUID userId, UserProfile profile) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
-    if (user.getUserProfile() != null) {
+    if (userProfileRepository.existsById(userId)) {
       throw new IllegalStateException("User already has a profile");
     }
 
     profile.setUser(user);
+    profile.setUserId(userId);
     return userProfileRepository.save(profile);
   }
 
   @Transactional
-  public UserProfile updateProfile(UUID id, UserProfile updatedProfile) {
-    UserProfile existingProfile = userProfileRepository.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Profile not found with id: " + id));
+  @CachePut(value = RedisCacheConfig.USER_PROFILE_CACHE, key = "#userId")
+  public UserProfile updateProfile(UUID userId, UserProfile updatedProfile) {
+    UserProfile existingProfile = userProfileRepository.findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("Profile not found for user id: " + userId));
 
     if (updatedProfile.getFullName() != null) {
       existingProfile.setFullName(updatedProfile.getFullName());
@@ -73,9 +83,10 @@ public class UserProfileService {
   }
 
   @Transactional
-  public void deleteProfile(UUID id) {
-    UserProfile profile = userProfileRepository.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Profile not found with id: " + id));
+  @CacheEvict(value = RedisCacheConfig.USER_PROFILE_CACHE, key = "#userId")
+  public void deleteProfile(UUID userId) {
+    UserProfile profile = userProfileRepository.findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("Profile not found for user id: " + userId));
     userProfileRepository.delete(profile);
   }
 }

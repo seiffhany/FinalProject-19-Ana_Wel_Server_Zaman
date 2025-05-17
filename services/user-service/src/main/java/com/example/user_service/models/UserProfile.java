@@ -9,11 +9,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -26,11 +25,11 @@ import lombok.ToString;
 
 /**
  * UserProfile entity representing a user's profile information.
- * This entity is linked to the User entity with a one-to-one relationship.
+ * This entity is linked to the User entity with a one-to-one relationship,
+ * sharing the same primary key as the User entity.
  */
 @Entity
 @Table(name = "user_profiles", indexes = {
-        @Index(name = "idx_user_profile_user_id", columnList = "user_id"),
         @Index(name = "idx_user_profile_full_name", columnList = "full_name")
 })
 @Getter
@@ -38,16 +37,15 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(of = { "id", "fullName", "location" })
+@ToString(of = { "userId", "fullName", "location" })
 public class UserProfile {
 
     /**
-     * The unique identifier for the user profile.
+     * The ID of the user profile, which is the same as the user's ID
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
-    private UUID id;
+    @Column(name = "user_id")
+    private UUID userId;
 
     /**
      * The full name of the user.
@@ -97,9 +95,12 @@ public class UserProfile {
 
     /**
      * The user associated with this profile.
+     * The @MapsId annotation indicates that the user_id is both a foreign key and
+     * the primary key.
      */
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @MapsId
+    @JoinColumn(name = "user_id")
     @JsonManagedReference
     private User user;
 
@@ -123,6 +124,7 @@ public class UserProfile {
         this.profilePictureUrl = profilePictureUrl;
         this.location = location;
         this.user = user;
+        this.userId = user.getId(); // Set the ID from the user
     }
 
     /**
