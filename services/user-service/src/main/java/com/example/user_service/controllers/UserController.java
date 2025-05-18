@@ -13,16 +13,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.user_service.models.User;
+
 import com.example.user_service.services.UserService;
+import com.example.user_service.service.UserDataService;
+import com.example.user_service.dto.QuestionDTO;
+import com.example.user_service.dto.AnswerDTO;
+
 
 @RestController
 @RequestMapping("${api.base.url}")
 public class UserController {
 
     private final UserService userService;
+    private final UserDataService userDataService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserDataService userDataService) {
         this.userService = userService;
+        this.userDataService = userDataService;
     }
 
     @GetMapping
@@ -32,7 +39,10 @@ public class UserController {
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable UUID id) {
-        return userService.getUserById(id).get();
+        User user = userService.getUserById(id).get();
+        List<QuestionDTO> userQuestions = userDataService.getUserQuestions(id);
+        List<AnswerDTO> userAnswers = userDataService.getUserAnswers(id);
+        return user;
     }
 
     @GetMapping("/username/{username}")
