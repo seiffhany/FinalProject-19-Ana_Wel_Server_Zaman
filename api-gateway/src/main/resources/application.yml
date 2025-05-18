@@ -61,4 +61,4 @@ jwt:
 public:
   routes:
     paths:
-      - /questions/bypass
+      - /questions
