@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.question_service.model.Question;
+import com.example.question_service.rabbitmq.RabbitMQProducer;
 import com.example.question_service.service.QuestionService;
 
 @RestController
@@ -33,19 +34,32 @@ import com.example.question_service.service.QuestionService;
 public class QuestionController {
 
     private final QuestionService questionService;
+    private final RabbitMQProducer rMqProducer;
 
     //error payload DTO
     private record ErrorBody(int status, String message) {}
 
     @Autowired
-    public QuestionController(QuestionService questionService) {
+    public QuestionController(QuestionService questionService, RabbitMQProducer rMqProducer) {
         this.questionService = questionService;
+        this.rMqProducer = rMqProducer;
     }
-
 
     @PostMapping
     public ResponseEntity<Question> createQuestion(@RequestBody Question question) {
         return ResponseEntity.ok(questionService.addQuestion(question));
+    }
+
+    @GetMapping("/bypass")
+    public ResponseEntity<String> sayHello() {
+        rMqProducer.sendUpvoteNotification("seif.naguib@gmail.com", "What is the capital of France?", "John Doe");
+        return ResponseEntity.ok("This route successfully bypassed authentication!");
+    }
+
+    @GetMapping("/needs-authentication")
+    public ResponseEntity<String> hasAuthenticated() {
+        // rMqProducer.sendMessage("Hello, World");
+        return ResponseEntity.ok("This route has been reached after successful authentication!");
     }
 
     @GetMapping

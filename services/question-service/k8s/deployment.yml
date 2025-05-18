@@ -22,11 +22,11 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://postgres:5432/qa_platform"
+              value: "jdbc:postgresql://postgres:5432/appdb"
             - name: SPRING_DATASOURCE_USERNAME
-              value: "postgres"
+              value: "root"
             - name: SPRING_DATASOURCE_PASSWORD
-              value: "postgres"
+              value: "example"
 ---
 apiVersion: v1
 kind: Service
@@ -37,6 +37,7 @@ spec:
   selector:
     app: question-service
   ports:
-    - port: 8082
+    - name: http
+      port: 8082
       targetPort: 8082
   type: ClusterIP

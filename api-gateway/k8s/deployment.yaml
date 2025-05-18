@@ -1,10 +1,34 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: api-gateway-role
+  namespace: qa-platform
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "endpoints"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: api-gateway-rolebinding
+  namespace: qa-platform
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: qa-platform
+roleRef:
+  kind: Role
+  name: api-gateway-role
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-gateway
   namespace: qa-platform
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: api-gateway
@@ -15,14 +39,49 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: seiffhany/api-gateway:latest
+          image: seiffhany/api-gateway
           ports:
             - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: k8s
+            - name: SPRING_MAIN_WEB_APPLICATION_TYPE
+              value: reactive
+
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_0_ID
+              value: user-service
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_0_URI
+              value: http://user-service:8080
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0
+              value: Path=/users/**
+
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_1_ID
+              value: question-service
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_1_URI
+              value: http://question-service:8080
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_0
+              value: Path=/questions/**
+
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_2_ID
+              value: answer-service
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_2_URI
+              value: http://answer-service:8080
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_2_PREDICATES_0
+              value: Path=/answers/**
+
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_3_ID
+              value: notification-service
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_3_URI
+              value: http://notification-service:8080
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_3_PREDICATES_0
+              value: Path=/notifications/**
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: api-gateway
+  namespace: qa-platform
 spec:
   type: NodePort
   ports:
