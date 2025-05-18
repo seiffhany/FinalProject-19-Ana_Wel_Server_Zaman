@@ -5,17 +5,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.user_service.factory.UserFactory;
 import com.example.user_service.factory.UserFactoryProvider;
-import com.example.user_service.models.Follower;
-import com.example.user_service.models.FollowerId;
 import com.example.user_service.models.Role;
 import com.example.user_service.models.User;
 import com.example.user_service.models.UserProfile;
@@ -61,11 +56,9 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-
-
     @PreAuthorize("hasRole('ADMIN')")
     public Optional<User> getUserByUsername(String username) {
-        return userRepository.findByUsernameAndIsActiveTrue(username);
+        return userRepository.findByUsername(username);
     }
 
     @Transactional

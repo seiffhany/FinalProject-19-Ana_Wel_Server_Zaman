@@ -19,7 +19,8 @@ import com.example.user_service.models.User;
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
-    Optional<User> findByUsernameAndIsActiveTrue(String username); // find user by username and check if the user is active
+    Optional<User> findByUsernameAndIsActiveTrue(String username); // find user by username and check if the user is
+                                                                   // active
 
     boolean existsByEmail(String email); // check if user with specified email exists.
 
@@ -30,5 +31,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT f.followed FROM Follower f WHERE f.follower.id = :id")
     List<User> getUserFollowing(@Param("id") UUID id);
+
+    Optional<User> findByUsername(String username);
 
 }
