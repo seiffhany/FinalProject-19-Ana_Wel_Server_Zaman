@@ -1,0 +1,21 @@
+spring:
+    application:
+        name: answer-service
+
+    data:
+        mongodb:
+#            uri: mongodb://mongo:secret@localhost:27017/miniappdb
+            uri: mongodb+srv://seifsabra2002:secretPass@account-service.anxb0r2.mongodb.net/answerService
+        redis:
+            host: redis
+            port: 6379
+            password: example
+
+        rabbitmq:
+            host: rabbitmq
+            port: 5672
+            username: root
+            password: example
+
+server:
+    port: 8085

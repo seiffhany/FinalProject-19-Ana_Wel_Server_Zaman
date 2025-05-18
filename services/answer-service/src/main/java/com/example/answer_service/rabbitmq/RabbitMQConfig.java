@@ -1,5 +1,6 @@
 package com.example.answer_service.rabbitmq;
 
+
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
@@ -62,5 +63,4 @@ public class RabbitMQConfig {
                 .to(questionExchange)
                 .with(ANSWER_ROUTING_KEY);
     }
-
 }
