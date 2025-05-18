@@ -43,14 +43,12 @@ import java.util.concurrent.TimeUnit;
 public class AuthenticationService {
 
     private final UserRepository userRepository;
-    private final UserProfileRepository userProfileRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
     private final RedisTemplate<String, Object> redisTemplate;
     private final UserDetailsService userDetailsService;
-    private final BCryptPasswordEncoder passwordEncoder;
-    private final UserFactoryProvider userFactoryProvider;
     private final UserProfileService userProfileService;
+    private final UserService userService;
 
     // Redis key for storing the token blacklist
     private static final String TOKEN_BLACKLIST_NAME = "blacklist:";
@@ -98,33 +96,6 @@ public class AuthenticationService {
     }
 
     /**
-     * This method handles user creation in the registration process.
-     * It creates a user given his required attributes,
-     * and returns an instance of the created user.
-     *
-     * @param email    The email of the user.
-     * @param username The username of the user.
-     * @param password The password of the user.
-     * @param role     The role of the user.
-     * @return An instance of the created user.
-     */
-    private User createUser(String email, String username, String password, Role role) {
-        if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email already exists");
-        }
-
-        if (userRepository.existsByUsername(username)) {
-            throw new IllegalArgumentException("Username already exists");
-        }
-
-        // Get the appropriate factory and create the user
-        var factory = userFactoryProvider.getFactory(role);
-        User user = factory.createUser(username, email, passwordEncoder.encode(password));
-
-        return userRepository.save(user);
-    }
-
-    /**
      * This method handles full user registration.
      * It creates a user profile given his required attributes,
      * and returns an instance of the created user profile.
@@ -139,7 +110,7 @@ public class AuthenticationService {
     public AuthenticationResponse register(String email, String username, String password, Role role, String fullName,
             String bio, String profilePictureUrl, String location) {
         // Create the user using the factory
-        User user = this.createUser(email, username, password, role);
+        User user = userService.createUser(email, username, password, role);
 
         // Create the user profile using the UserProfileService
         UserProfile userProfile = UserProfile.builder()

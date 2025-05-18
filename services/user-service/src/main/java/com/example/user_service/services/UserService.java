@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,46 +35,37 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public User createUser(String username, String email, String password, Role role) {
-        log.info("Creating new user with role: {}", role);
-
-        // Check if username or email already exists
-        if (userRepository.existsByUsername(username)) {
-            throw new IllegalArgumentException("Username already exists");
-        }
+    public User createUser(String email, String username, String password, Role role) {
         if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email already exists");
         }
 
+        if (userRepository.existsByUsername(username)) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+
         // Get the appropriate factory and create the user
-        UserFactory factory = userFactoryProvider.getFactory(role);
+        var factory = userFactoryProvider.getFactory(role);
         User user = factory.createUser(username, email, passwordEncoder.encode(password));
 
-        // Save the user
-        User savedUser = userRepository.save(user);
-        log.info("User created successfully with ID: {}", savedUser.getId());
-
-        return savedUser;
+        return userRepository.save(user);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public Optional<User> getUserById(UUID id) {
         return userRepository.findById(id);
     }
 
-    public List<User> getUserFollowers(UUID id) {
-        return userRepository.getUserFollowers(id);
-    }
 
-    public List<User> getUserFollowing(UUID id) {
-        return userRepository.getUserFollowing(id);
-    }
 
-    public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+    @PreAuthorize("hasRole('ADMIN')")
+    public Optional<User> getUserByUsername(String username) {
+        return userRepository.findByUsernameAndIsActiveTrue(username);
     }
 
     @Transactional
@@ -88,50 +81,7 @@ public class UserService {
     }
 
     @Transactional
-    public void followUser(UUID id, UUID followedId) {
-        var followerOpt = userRepository.findById(id);
-        var userToFollowOpt = userRepository.findById(followedId);
-
-        if (userToFollowOpt.isEmpty() || followerOpt.isEmpty()) {
-            throw new IllegalArgumentException("User not found");
-        }
-
-        // Check if already following
-        User follower = followerOpt.get();
-        User userToFollow = userToFollowOpt.get();
-        FollowerId followerRelationId = new FollowerId(follower.getId(), userToFollow.getId());
-        if (followerRepository.existsById(followerRelationId)) {
-            throw new IllegalStateException("Already following this user");
-        }
-
-        Follower followerRelation = new Follower(follower, userToFollow);
-        followerRepository.save(followerRelation);
-
-        // Update follower counts in user profiles
-        // updateFollowerCounts(follower, userToFollow, true);
-    }
-
-    @Transactional
-    public void unFollowUser(UUID id, UUID followerId) {
-        User userToUnfollow = userRepository.findById(followerId).get();
-        User follower = userRepository.findById(id).get();
-
-        if (userToUnfollow == null || follower == null) {
-            throw new IllegalArgumentException("User not found");
-        }
-
-        FollowerId followerRelationId = new FollowerId(follower.getId(), userToUnfollow.getId());
-        if (!followerRepository.existsById(followerRelationId)) {
-            throw new IllegalStateException("Not following this user");
-        }
-
-        followerRepository.deleteById(followerRelationId);
-
-        // Update follower counts in user profiles
-        // updateFollowerCounts(follower, userToUnfollow, false);
-    }
-
-    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public User deactivateUser(UUID id) {
         User user = userRepository.findById(id).get();
         if (user == null) {
@@ -144,6 +94,7 @@ public class UserService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public User activateUser(UUID id) {
         User user = userRepository.findById(id).get();
         if (user == null) {
@@ -156,6 +107,7 @@ public class UserService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public User deleteUser(UUID id) {
         User user = userRepository.findById(id).get();
         if (user == null) {

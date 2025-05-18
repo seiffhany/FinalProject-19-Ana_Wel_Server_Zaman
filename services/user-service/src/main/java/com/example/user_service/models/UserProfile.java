@@ -1,5 +1,6 @@
 package com.example.user_service.models;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.Formula;

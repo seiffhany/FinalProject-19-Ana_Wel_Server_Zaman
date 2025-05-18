@@ -35,41 +35,18 @@ public class UserController {
         return userService.getUserById(id).get();
     }
 
-    @GetMapping("/email/{email}")
-    public User getUserByEmail(@PathVariable String email) {
-        return userService.getUserByEmail(email).get();
+    @GetMapping("/username/{username}")
+    public User getUserByEmail(@PathVariable String username) {
+        return userService.getUserByUsername(username).get();
     }
 
-    @GetMapping("/{id}/followers")
-    public List<User> getUserFollowers(@PathVariable UUID id) {
-        return userService.getUserFollowers(id);
-    }
-
-    @GetMapping("/{id}/following")
-    public List<User> getUserFollowing(@PathVariable UUID id) {
-        return userService.getUserFollowing(id);
-    }
-
-    @PutMapping("/{id}/follow/{followedId}") // Will Change to use User Token
-    public ResponseEntity<String> followUser(@PathVariable UUID id, @PathVariable UUID followedId) {
-        userService.followUser(id, followedId);
-        return ResponseEntity.ok("Followed successfully");
-    }
-
-    @PutMapping("/{id}/unfollow/{followedId}") // Will Change to use User Token
-    public ResponseEntity<String> unfollowUser(@PathVariable UUID id, @PathVariable UUID followedId) {
-        userService.unFollowUser(id, followedId);
-        return ResponseEntity.ok("Unfollowed successfully");
-    }
 
     @PutMapping("/{id}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
     public User deactivateUser(@PathVariable UUID id) {
         return userService.deactivateUser(id);
     }
 
     @PutMapping("/{id}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
     public User activateUser(@PathVariable UUID id) {
         return userService.activateUser(id);
     }
