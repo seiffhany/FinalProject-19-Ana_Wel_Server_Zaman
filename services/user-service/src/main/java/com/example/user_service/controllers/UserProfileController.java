@@ -3,6 +3,8 @@ package com.example.user_service.controllers;
 import java.util.List;
 import java.util.UUID;
 
+import com.example.user_service.dto.UserProfileDTO;
+import com.example.user_service.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,10 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.user_service.models.UserProfile;
-import com.example.user_service.service.UserProfileService;
+import com.example.user_service.services.UserProfileService;
 
 @RestController
-@RequestMapping("/users/profile")
+@RequestMapping("${api.base.url}/profile")
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
@@ -33,9 +35,9 @@ public class UserProfileController {
         return ResponseEntity.ok(userProfileService.getAllProfiles());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserProfile> getProfileById(@PathVariable UUID id) {
-        return ResponseEntity.ok(userProfileService.getProfileById(id));
+    @GetMapping("/{username}")
+    public ResponseEntity<UserProfileDTO> getFullProfileByUsername(@PathVariable String username) {
+        return ResponseEntity.ok(userProfileService.getFullProfileByUsername(username));
     }
 
     @GetMapping("/user/{userId}")
@@ -61,5 +63,27 @@ public class UserProfileController {
     public ResponseEntity<Void> deleteProfile(@PathVariable UUID id) {
         userProfileService.deleteProfile(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/followers")
+    public List<User> getUserFollowers(@PathVariable UUID id) {
+        return userProfileService.getUserFollowers(id);
+    }
+
+    @GetMapping("/{id}/following")
+    public List<User> getUserFollowing(@PathVariable UUID id) {
+        return userProfileService.getUserFollowing(id);
+    }
+
+    @PutMapping("/{id}/follow/{followedId}")
+    public ResponseEntity<String> followUser(@PathVariable UUID id, @PathVariable UUID followedId) {
+        userProfileService.followUser(id, followedId);
+        return ResponseEntity.ok("Followed successfully");
+    }
+
+    @PutMapping("/{id}/unfollow/{followedId}")
+    public ResponseEntity<String> unfollowUser(@PathVariable UUID id, @PathVariable UUID followedId) {
+        userProfileService.unFollowUser(id, followedId);
+        return ResponseEntity.ok("Unfollowed successfully");
     }
 }

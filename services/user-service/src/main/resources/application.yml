@@ -35,7 +35,7 @@ spring:
 # API BASE URL
 api:
   base:
-    url: ${API_BASE_URL:/api/v1}
+    url: ${API_BASE_URL:/api/v1/users}
 
 # JWT Configuration
 jwt:
@@ -44,9 +44,8 @@ jwt:
 
 answer:
   service:
-    url: http://localhost:8082 # Adjust port according to your answer service
+    url: http://localhost:8082
 
 question:
   service:
-    url: http://localhost:8083 # Adjust port according to your question service
-
+    url: http://localhost:8083

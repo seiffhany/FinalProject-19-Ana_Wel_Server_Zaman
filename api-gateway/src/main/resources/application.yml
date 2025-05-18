@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: api-gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  # Enable caching type to Redis
+  cache:
+    type: redis
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lowerCaseServiceId: true
+      routes:
+        - id: user-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=1
+
+        - id: question-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/questions/**
+          filters:
+            - StripPrefix=1
+
+        - id: answer-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/answers/**
+          filters:
+            - StripPrefix=1
+
+        - id: notification-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - StripPrefix=1
+    kubernetes:
+      discovery:
+        enabled: true
+        namespace: qa-platform
+        all-namespaces: false
+        primary-port-name: http
+
+server:
+  port: 8080
+
+# JWT Configuration
+jwt:
+  secret: "01823ee2567b6d99636166bb16e1e6525fc34f9e61627c076cad49a2fc858f5dd2fe101a9c20a6125b9284846b2c753c425089ce9455044e86a900bee603eb1cba1b58a59d27cdba6b0a8ef02e305ac4c34599d2dfa1afc84b67e14c5f993fa295192b982a1b2ac33990120cad8303682ab92280eab3a35d65b9434fb60b269af9f3769ccdefe463e3802b059d56c7c6a154182ebabcffa3eae0f09cdedb5341d2c5ca1d0492ac5e88e6ec312af68f32ebb4b93cdaf849472fbc79280ae1ae2a9f06a1388a781971d11960e6a0ea3eba676e08a545dce1efd29799c5f8b4e04775b84fa5d3da03c386771dac3cfe27c719550ec25fe5e038c55c3e2d5daeedaf"
+  expiration: 86400000
+
+public:
+  routes:
+    paths:
+      - /questions

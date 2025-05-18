@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,13 +13,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.user_service.models.User;
-import com.example.user_service.service.UserService;
+
+import com.example.user_service.services.UserService;
 import com.example.user_service.service.UserDataService;
 import com.example.user_service.dto.QuestionDTO;
 import com.example.user_service.dto.AnswerDTO;
 
+
 @RestController
-@RequestMapping("/users")
+@RequestMapping("${api.base.url}")
 public class UserController {
 
     private final UserService userService;
@@ -42,32 +45,11 @@ public class UserController {
         return user;
     }
 
-    @GetMapping("/email/{email}")
-    public User getUserByEmail(@PathVariable String email) {
-        return userService.getUserByEmail(email).get();
+    @GetMapping("/username/{username}")
+    public User getUserByEmail(@PathVariable String username) {
+        return userService.getUserByUsername(username).get();
     }
 
-    @GetMapping("/{id}/followers")
-    public List<User> getUserFollowers(@PathVariable UUID id) {
-        return userService.getUserFollowers(id);
-    }
-
-    @GetMapping("/{id}/following")
-    public List<User> getUserFollowing(@PathVariable UUID id) {
-        return userService.getUserFollowing(id);
-    }
-
-    @PutMapping("/{id}/follow/{followedId}") // Will Change to use User Token
-    public ResponseEntity<String> followUser(@PathVariable UUID id, @PathVariable UUID followedId) {
-        userService.followUser(id, followedId);
-        return ResponseEntity.ok("Followed successfully");
-    }
-
-    @PutMapping("/{id}/unfollow/{followedId}") // Will Change to use User Token
-    public ResponseEntity<String> unfollowUser(@PathVariable UUID id, @PathVariable UUID followedId) {
-        userService.unFollowUser(id, followedId);
-        return ResponseEntity.ok("Unfollowed successfully");
-    }
 
     @PutMapping("/{id}/deactivate")
     public User deactivateUser(@PathVariable UUID id) {
