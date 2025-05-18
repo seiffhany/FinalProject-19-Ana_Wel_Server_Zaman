@@ -1,25 +1,29 @@
 package com.example.question_service.service;
 
-import com.example.question_service.exception.AuthorNotFoundException;
-import com.example.question_service.exception.InvalidSortCriterionException;
-import com.example.question_service.exception.QuestionNotFoundException;
-import com.example.question_service.model.Question;
-import com.example.question_service.model.builder.QuestionBuilder;
-import com.example.question_service.service.client.UserClient;
-import com.example.question_service.service.filter.TagFilterStrategy;
-import com.example.question_service.service.filter.TitleFilterStrategy;
-import com.example.question_service.service.sort.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.example.question_service.repository.QuestionRepository;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.question_service.exception.AuthorNotFoundException;
+import com.example.question_service.exception.InvalidSortCriterionException;
+import com.example.question_service.exception.QuestionNotFoundException;
+import com.example.question_service.model.Question;
+import com.example.question_service.model.builder.QuestionBuilder;
+import com.example.question_service.repository.QuestionRepository;
+import com.example.question_service.service.client.UserClient;
+import com.example.question_service.service.filter.TagFilterStrategy;
+import com.example.question_service.service.filter.TitleFilterStrategy;
+import com.example.question_service.service.sort.CreationDateSortStrategy;
+import com.example.question_service.service.sort.SortStrategy;
+import com.example.question_service.service.sort.SorterContext;
+import com.example.question_service.service.sort.ViewCountSortStrategy;
+import com.example.question_service.service.sort.VoteCountSortStrategy;
 
 @Service
 public class QuestionService {
@@ -28,12 +32,12 @@ public class QuestionService {
 
     /* ---------- Sort strategies ---------- */
     private static final Map<String, SortStrategy> SORT_MAP = Map.of(
-            "date",  new CreationDateSortStrategy(),
+            "date", new CreationDateSortStrategy(),
             "views", new ViewCountSortStrategy(),
             "votes", new VoteCountSortStrategy());
 
     /* ---------- Filter strategies -------- */
-    private final TagFilterStrategy   tagFilter   = new TagFilterStrategy();
+    private final TagFilterStrategy tagFilter = new TagFilterStrategy();
     private final TitleFilterStrategy titleFilter = new TitleFilterStrategy();
 
     @Autowired
@@ -41,7 +45,6 @@ public class QuestionService {
         this.questionRepository = questionRepository;
         this.userClient = userClient;
     }
-
 
     // CREATE
     public Question addQuestion(Question questionInput) {
@@ -86,16 +89,23 @@ public class QuestionService {
         questionRepository.deleteById(id);
     }
 
-
-    @Transactional(readOnly = true)
-    public List<Question> findBySort(String sortBy, String filter) {
+    @Transactional
+    public List<Question> findBySort(String sortBy, String filter, boolean ascending) {
         SortStrategy strat = SORT_MAP.get(sortBy.toLowerCase());
-        if (strat == null) throw new InvalidSortCriterionException(sortBy);
+        if (strat == null)
+            throw new InvalidSortCriterionException(sortBy);
 
         List<Question> qs = questionRepository.findAll();
-        if (filter != null && !filter.isBlank()) qs = applyFilter(qs, filter);
+        if (filter != null && !filter.isBlank())
+            qs = applyFilter(qs, filter);
 
-        return new SorterContext(strat).execute(qs, /*ascending*/ false);
+        // Increment view count for each question
+        qs.forEach(q -> {
+            q.setViewCount(q.getViewCount() + 1);
+            questionRepository.save(q);
+        });
+
+        return new SorterContext(strat).execute(qs, ascending);
     }
 
     @Transactional
@@ -112,14 +122,20 @@ public class QuestionService {
         return questionRepository.save(q);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<Question> byAuthor(String authorId) {
         if (!userClient.doesUserExist(authorId))
             throw new AuthorNotFoundException(authorId);
 
-        return questionRepository.findByAuthorId(authorId);   // may be empty, that’s fine
-    }
+        List<Question> questions = questionRepository.findByAuthorId(authorId);
 
+        questions.forEach(q -> {
+            q.setViewCount(q.getViewCount() + 1);
+            questionRepository.save(q);
+        });
+
+        return questions;
+    }
 
     public Question getQuestion(UUID id) {
         return questionRepository.findById(id)
@@ -127,8 +143,10 @@ public class QuestionService {
     }
 
     private List<Question> applyFilter(List<Question> qs, String filter) {
-        if (filter.startsWith("tag:"))   return tagFilter.filter(qs, filter.substring(4));
-        if (filter.startsWith("title:")) return titleFilter.filter(qs, filter.substring(6));
-        return qs;     // fallback: no filter applied
+        if (filter.startsWith("tag:"))
+            return tagFilter.filter(qs, filter.substring(4));
+        if (filter.startsWith("title:"))
+            return titleFilter.filter(qs, filter.substring(6));
+        return qs;
     }
 }

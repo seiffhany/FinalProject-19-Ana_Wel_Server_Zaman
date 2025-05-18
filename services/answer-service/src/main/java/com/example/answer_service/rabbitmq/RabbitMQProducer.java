@@ -6,9 +6,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.shared_models.notification.NotificationMessage;
-import com.example.shared_models.notification.NotificationMessage.NotificationCategory;
-import com.example.shared_models.notification.NotificationMessage.NotificationType;
+import com.example.answer_service.utils.NotificationMessage;
+import com.example.answer_service.utils.NotificationMessage.NotificationCategory;
+import com.example.answer_service.utils.NotificationMessage.NotificationType;
 
 @Service
 public class RabbitMQProducer {

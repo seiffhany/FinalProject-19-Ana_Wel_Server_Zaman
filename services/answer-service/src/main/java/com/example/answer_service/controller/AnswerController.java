@@ -1,19 +1,25 @@
 package com.example.answer_service.controller;
 
-import com.example.answer_service.commands.receiver.AnswerReceiver;
-import com.example.answer_service.dto.UpdateAnswerRequest;
-import com.example.answer_service.model.Answer;
-import com.example.answer_service.repositories.AnswerRepository;
-import com.example.answer_service.service.AnswerService;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.UUID;
+import com.example.answer_service.model.Answer;
+import com.example.answer_service.service.AnswerService;
 
 @RestController
 @RequestMapping("/answer")
@@ -48,9 +54,9 @@ public class AnswerController {
         }
     }
 
-
     @GetMapping("/getAllAnswersByQuestionID/{questionID}")
-    public ResponseEntity<List<AnswerService.AnswerWithReplies>> getAllAnswersByQuestionID(@PathVariable UUID questionID) {
+    public ResponseEntity<List<AnswerService.AnswerWithReplies>> getAllAnswersByQuestionID(
+            @PathVariable UUID questionID) {
         List<AnswerService.AnswerWithReplies> nestedAnswers = answerService.getNestedAnswers(questionID);
         return ResponseEntity.ok(nestedAnswers);
     }
@@ -68,6 +74,7 @@ public class AnswerController {
                     .body("Failed to mark best answer: " + ex.getMessage());
         }
     }
+
     @GetMapping("/getAllRepliesFromAnswer/{answerId}")
     public ResponseEntity<?> getAllRepliesFromAnswer(@PathVariable UUID answerId) {
         try {
@@ -79,8 +86,8 @@ public class AnswerController {
         }
     }
 
-    //Add it lama ngeeb el user token
-    //Mesh hayenfa3 ykoon fy etnen methods b nafs el Get mapping path
+    // Add it lama ngeeb el user token
+    // Mesh hayenfa3 ykoon fy etnen methods b nafs el Get mapping path
     @GetMapping("/user/logged-in/{userId}")
     public ResponseEntity<?> getAnswersByLoggedInUser(@PathVariable UUID userId) {
         try {
@@ -157,7 +164,6 @@ public class AnswerController {
                     .body("Failed to downvote answer: " + e.getMessage());
         }
     }
-
 
     @PutMapping("/markBestAnswer/{answerId}")
     public ResponseEntity<String> markBestAnswer(@PathVariable UUID answerId, @RequestParam UUID loggedInUser) {
