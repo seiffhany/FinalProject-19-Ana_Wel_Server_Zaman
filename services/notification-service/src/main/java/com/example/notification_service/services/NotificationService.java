@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.notification_service.exception.NotificationNotFoundException;
 import com.example.notification_service.factory.Notification;
 import com.example.notification_service.factory.NotificationFactory;
 import com.example.notification_service.factory.NotificationType;
@@ -12,64 +13,74 @@ import com.example.notification_service.repositories.NotificationRepository;
 import com.example.notification_service.strategy.EmailNotificationStrategy;
 import com.example.notification_service.strategy.InAppNotificationStrategy;
 import com.example.notification_service.strategy.NotificationSender;
+import com.example.notification_service.utils.NotificationMessage;
 
 @Service
 public class NotificationService {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    public ArrayList<Notification> getAllNotifications(String recipientId) {
+    @Autowired
+    private InAppNotificationStrategy inAppNotificationStrategy;
+
+    @Autowired
+    private EmailNotificationStrategy emailNotificationStrategy;
+
+    public ArrayList<Notification> getAllNotifications(String recipientEmail) {
         return new ArrayList<>(
-                notificationRepository.findAllByRecipientIdAndTypeAndArchivedIsFalse(recipientId,
+                notificationRepository.findAllByRecipientEmailAndTypeAndArchivedIsFalse(recipientEmail,
                         NotificationType.IN_APP_NOTIFICATION));
     }
 
-    public ArrayList<Notification> getUnreadNotifications(String recipientId) {
+    public ArrayList<Notification> getUnreadNotifications(String recipientEmail) {
         return new ArrayList<>(notificationRepository
-                .findAllByRecipientIdAndTypeAndArchivedIsFalseAndReadIsFalse(recipientId,
+                .findAllByRecipientEmailAndTypeAndArchivedIsFalseAndReadIsFalse(recipientEmail,
                         NotificationType.IN_APP_NOTIFICATION));
     }
 
     public void markAsRead(String id) {
-        Notification notification = notificationRepository.findById(id).orElse(null);
-        if (notification != null) {
-            notification.setRead(true);
-            notificationRepository.save(notification);
-        }
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new NotificationNotFoundException(id));
+        notification.setRead(true);
+        notificationRepository.save(notification);
     }
 
     public void archiveNotification(String id) {
-        Notification notification = notificationRepository.findById(id).orElse(null);
-        if (notification != null) {
-            notification.setArchived(true);
-            notificationRepository.save(notification);
-        }
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new NotificationNotFoundException(id));
+        notification.setArchived(true);
+        notificationRepository.save(notification);
     }
 
-    public ArrayList<Notification> getArchivedNotifications(String recipientId) {
+    public ArrayList<Notification> getArchivedNotifications(String recipientEmail) {
         return new ArrayList<>(
-                notificationRepository.findAllByRecipientIdAndTypeAndArchivedIsTrue(recipientId,
+                notificationRepository.findAllByRecipientEmailAndTypeAndArchivedIsTrue(recipientEmail,
                         NotificationType.IN_APP_NOTIFICATION));
     }
 
-    public void sendNotification(String[] message) {
-        // message = [type, recipientEmail]
+    public void sendNotification(NotificationMessage message) {
+        for (String recipientEmail : message.getRecipientEmails()) {
+            Notification notification = NotificationFactory.createNotification(
+                    message.getCategory(),
+                    recipientEmail);
 
-        // Setting up the notification using the factory
-        String type = message[0].split(" ")[0];
-        Notification notification = NotificationFactory.createNotification(type, message[1]);
-        notification.formulateNotificationMessage(message);
+            String[] contentItems = message.getContent().split("\\|");
+            String content = notification.formulateNotificationMessage(contentItems, message.getCategory());
 
-        // Send In-App
-        NotificationSender sender = new NotificationSender();
-        if (notification.getType() == NotificationType.IN_APP_NOTIFICATION) {
-            sender.setStrategy(new InAppNotificationStrategy());
+            notification.setMessage(content);
+
+            // Send notification based on type
+            NotificationSender sender = new NotificationSender();
+            switch (message.getType()) {
+                case IN_APP_NOTIFICATION -> sender.setStrategy(inAppNotificationStrategy);
+                case EMAIL_NOTIFICATION -> sender.setStrategy(emailNotificationStrategy);
+                case EMAIL_AND_IN_APP_NOTIFICATION -> {
+                    sender.setStrategy(inAppNotificationStrategy);
+                    sender.sendNotification(notification);
+                    sender.setStrategy(emailNotificationStrategy);
+                }
+            }
+            sender.sendNotification(notification);
         }
-        // Send via Email
-        else {
-            sender.setStrategy(new EmailNotificationStrategy());
-        }
-        sender.sendNotification(notification);
     }
-
 }

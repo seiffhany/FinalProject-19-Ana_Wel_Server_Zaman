@@ -4,6 +4,10 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,7 +27,8 @@ public class RabbitMQConfig {
     }
 
     /**
-     * The exchange is used to route messages to the appropriate queue based on the routing key.
+     * The exchange is used to route messages to the appropriate queue based on the
+     * routing key.
      */
     @Bean
     public TopicExchange notificationExchange() {
@@ -31,7 +36,8 @@ public class RabbitMQConfig {
     }
 
     /**
-     * The binding connects the queue to the exchange using the specified routing key.
+     * The binding connects the queue to the exchange using the specified routing
+     * key.
      */
     @Bean
     public Binding binding(Queue notificationQueue, TopicExchange notificationExchange) {
@@ -41,7 +47,7 @@ public class RabbitMQConfig {
                 .with(QUESTION_ROUTING_KEY);
     }
 
-    //Configuration for communication with answer service
+    // Configuration for communication with answer service
 
     public static final String QUESTION_QUEUE_NAME = "questionQueue";
     public static final String QUESTION_EXCHANGE_NAME = "questionExchange";
@@ -51,10 +57,12 @@ public class RabbitMQConfig {
     public Queue questionQueue() {
         return new Queue(QUESTION_QUEUE_NAME);
     }
+
     @Bean
     public TopicExchange questionExchange() {
         return new TopicExchange(QUESTION_EXCHANGE_NAME);
     }
+
     @Bean
     public Binding questionBinding(Queue questionQueue, TopicExchange questionExchange) {
         return BindingBuilder
@@ -63,6 +71,15 @@ public class RabbitMQConfig {
                 .with(QUESTION_ROUTING_KEY);
     }
 
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
 
-
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+        rabbitTemplate.setMessageConverter(jsonMessageConverter());
+        return rabbitTemplate;
+    }
 }

@@ -2,6 +2,8 @@ package com.example.notification_service.factory;
 
 import org.springframework.data.annotation.Id;
 
+import com.example.notification_service.utils.NotificationMessage;
+
 public abstract class Notification {
     @Id
     private String id;
@@ -10,26 +12,22 @@ public abstract class Notification {
     private boolean isRead;
     private String recipientEmail;
     private boolean isArchived;
-    private NotificationType type;
+    private final NotificationMessage.NotificationType type;
 
-    public Notification(String timestamp, String recipientEmail) {
+    public Notification(String timestamp, String recipientEmail, NotificationMessage.NotificationType type) {
         this.timestamp = timestamp;
         this.isRead = false;
         this.recipientEmail = recipientEmail;
         this.isArchived = false;
-        this.type = NotificationType.EMAIL_NOTIFICATION;
+        this.type = type;
     }
 
     public String getId() {
         return id;
     }
 
-    public NotificationType getType() {
+    public NotificationMessage.NotificationType getType() {
         return type;
-    }
-
-    public void setType(NotificationType type) {
-        this.type = type;
     }
 
     public String getMessage() {
@@ -64,5 +62,6 @@ public abstract class Notification {
         this.isArchived = archived;
     }
 
-    public abstract String formulateNotificationMessage(String[] message);
+    public abstract String formulateNotificationMessage(String[] message,
+            NotificationMessage.NotificationCategory category);
 }

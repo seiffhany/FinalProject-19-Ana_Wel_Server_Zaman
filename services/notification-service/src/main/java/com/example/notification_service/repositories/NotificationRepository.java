@@ -10,10 +10,10 @@ import com.example.notification_service.factory.NotificationType;
 
 @Repository
 public interface NotificationRepository extends MongoRepository<Notification, String> {
-    List<Notification> findAllByRecipientIdAndTypeAndArchivedIsTrue(String recipientId, NotificationType type);
+    List<Notification> findAllByRecipientEmailAndTypeAndArchivedIsTrue(String recipientEmail, NotificationType type);
 
-    List<Notification> findAllByRecipientIdAndTypeAndArchivedIsFalse(String recipientId, NotificationType type);
+    List<Notification> findAllByRecipientEmailAndTypeAndArchivedIsFalse(String recipientEmail, NotificationType type);
 
-    List<Notification> findAllByRecipientIdAndTypeAndArchivedIsFalseAndReadIsFalse(String recipientId,
+    List<Notification> findAllByRecipientEmailAndTypeAndArchivedIsFalseAndReadIsFalse(String recipientEmail,
             NotificationType type);
 }
