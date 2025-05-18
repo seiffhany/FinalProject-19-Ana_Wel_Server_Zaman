@@ -7,7 +7,7 @@ spring:
 
   # PostgreSQL Configuration
   datasource:
-    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/appdb}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/usersdb}
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
@@ -31,6 +31,13 @@ spring:
   # Enable caching type to Redis
   cache:
     type: redis
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: root
+    password: example
+
 
 # API BASE URL
 api:
