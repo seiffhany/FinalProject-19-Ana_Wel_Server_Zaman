@@ -112,12 +112,6 @@
             <artifactId>spring-rabbit</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.example</groupId>
-            <artifactId>shared-models</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope> </dependency>
