@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.user_service.models.UserProfile;
-import com.example.user_service.service.UserProfileService;
+import com.example.user_service.services.UserProfileService;
 
 @RestController
-@RequestMapping("/users/profile")
+@RequestMapping("${api.base.url}/profile")
 public class UserProfileController {
 
     private final UserProfileService userProfileService;

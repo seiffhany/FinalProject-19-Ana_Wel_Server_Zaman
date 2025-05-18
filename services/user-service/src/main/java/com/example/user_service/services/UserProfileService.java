@@ -1,4 +1,4 @@
-package com.example.user_service.service;
+package com.example.user_service.services;
 
 import java.util.List;
 import java.util.UUID;
@@ -46,7 +46,6 @@ public class UserProfileService {
   }
 
   @Transactional
-  @CachePut(value = RedisCacheConfig.USER_PROFILE_CACHE, key = "#userId")
   public UserProfile createProfile(UUID userId, UserProfile profile) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
@@ -56,7 +55,6 @@ public class UserProfileService {
     }
 
     profile.setUser(user);
-    profile.setUserId(userId);
     return userProfileRepository.save(profile);
   }
 

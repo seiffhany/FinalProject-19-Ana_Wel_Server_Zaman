@@ -2,6 +2,7 @@ package com.example.user_service.services;
 
 import com.example.user_service.config.JwtTokenProvider;
 import com.example.user_service.dto.AuthenticationResponse;
+import com.example.user_service.factory.UserFactoryProvider;
 import com.example.user_service.models.Role;
 import com.example.user_service.models.User;
 import com.example.user_service.models.UserProfile;
@@ -21,6 +22,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
@@ -47,10 +49,11 @@ public class AuthenticationService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final UserDetailsService userDetailsService;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final UserFactoryProvider userFactoryProvider;
+    private final UserProfileService userProfileService;
 
     // Redis key for storing the token blacklist
     private static final String TOKEN_BLACKLIST_NAME = "blacklist:";
-
 
     /**
      * This method handles user login.
@@ -61,6 +64,7 @@ public class AuthenticationService {
      * @param password The password of the user.
      * @return An AuthenticationResponse object containing the generated JWT token.
      */
+    @Transactional
     public AuthenticationResponse login(String username, String password) {
         // authenticate the user
         // if the user is not found or the password is incorrect, an exception will be
@@ -98,56 +102,26 @@ public class AuthenticationService {
      * It creates a user given his required attributes,
      * and returns an instance of the created user.
      *
-     * @param email The email of the user.
+     * @param email    The email of the user.
      * @param username The username of the user.
      * @param password The password of the user.
-     * @param role The role of the user.
+     * @param role     The role of the user.
      * @return An instance of the created user.
      */
     private User createUser(String email, String username, String password, Role role) {
-        if (userRepository.existsByEmail(email))
-        {
+        if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        if (userRepository.existsByUsername(username))
-        {
+        if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists");
         }
 
-        User user = new User();
-        user.setEmail(email);
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setRole(role);
+        // Get the appropriate factory and create the user
+        var factory = userFactoryProvider.getFactory(role);
+        User user = factory.createUser(username, email, passwordEncoder.encode(password));
 
-        userRepository.save(user);
-
-        return user;
-    }
-
-    /**
-     * This method handles user profile creation in the registration process.
-     * It creates a user profile given his required attributes,
-     * and returns an instance of the created user profile.
-     *
-     * @param fullName The name of the user.
-     * @param bio The bio of the user.
-     * @param profilePictureUrl The profile picture url of the user.
-     * @param location The location of the user.
-     * @return An instance of the created user profile.
-     */
-    private UserProfile createUserProfile(User user, String fullName, String bio, String profilePictureUrl, String location) {
-        UserProfile userProfile = new UserProfile();
-        userProfile.setUser(user);
-        userProfile.setFullName(fullName);
-        userProfile.setBio(bio);
-        userProfile.setProfilePictureUrl(profilePictureUrl);
-        userProfile.setLocation(location);
-
-        userProfileRepository.save(userProfile);
-
-        return userProfile;
+        return userRepository.save(user);
     }
 
     /**
@@ -155,15 +129,27 @@ public class AuthenticationService {
      * It creates a user profile given his required attributes,
      * and returns an instance of the created user profile.
      *
-     * @param fullName The name of the user.
-     * @param bio The bio of the user.
+     * @param fullName          The name of the user.
+     * @param bio               The bio of the user.
      * @param profilePictureUrl The profile picture url of the user.
-     * @param location The location of the user.
+     * @param location          The location of the user.
      * @return An AuthenticationResponse object containing the generated JWT token.
      */
-    public AuthenticationResponse register(String email, String username, String password, Role role, String fullName, String bio, String profilePictureUrl, String location) {
+    @Transactional
+    public AuthenticationResponse register(String email, String username, String password, Role role, String fullName,
+            String bio, String profilePictureUrl, String location) {
+        // Create the user using the factory
         User user = this.createUser(email, username, password, role);
-        UserProfile userProfile = this.createUserProfile(user, fullName, bio, profilePictureUrl, location);
+
+        // Create the user profile using the UserProfileService
+        UserProfile userProfile = UserProfile.builder()
+                .fullName(fullName)
+                .bio(bio)
+                .profilePictureUrl(profilePictureUrl)
+                .location(location)
+                .build();
+
+        userProfileService.createProfile(user.getId(), userProfile);
 
         // log the successful registration
         log.debug("User {} registered successfully", username);
@@ -173,12 +159,6 @@ public class AuthenticationService {
 
         // log the generated token
         log.debug("Generated JWT token: {}", jwtToken);
-
-        // update the last login time
-        user.setLastLoginAt(OffsetDateTime.now());
-
-        // save the user with the updated last login time
-        userRepository.save(user);
 
         // return the authentication response with the token
         return AuthenticationResponse.builder()
@@ -251,7 +231,8 @@ public class AuthenticationService {
 
     /**
      * This method authenticates the user by checking the security context.
-     * It retrieves the authentication object and checks if the user is authenticated.
+     * It retrieves the authentication object and checks if the user is
+     * authenticated.
      * If authenticated, it returns a map containing the user ID and username.
      * It allows other services to access the authenticated user's information.
      *

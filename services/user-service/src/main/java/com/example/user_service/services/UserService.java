@@ -1,4 +1,4 @@
-package com.example.user_service.service;
+package com.example.user_service.services;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -6,27 +6,53 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.user_service.factory.UserFactory;
+import com.example.user_service.factory.UserFactoryProvider;
 import com.example.user_service.models.Follower;
 import com.example.user_service.models.FollowerId;
+import com.example.user_service.models.Role;
 import com.example.user_service.models.User;
 import com.example.user_service.models.UserProfile;
 import com.example.user_service.repositories.FollowerRepository;
 import com.example.user_service.repositories.UserRepository;
 
-@Service
-public class UserService {
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-    @Autowired
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class UserService {
     private final UserRepository userRepository;
     private final FollowerRepository followerRepository;
+    private final UserFactoryProvider userFactoryProvider;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository,
-            FollowerRepository followerRepository) {
-        this.userRepository = userRepository;
-        this.followerRepository = followerRepository;
+    @Transactional
+    public User createUser(String username, String email, String password, Role role) {
+        log.info("Creating new user with role: {}", role);
+
+        // Check if username or email already exists
+        if (userRepository.existsByUsername(username)) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+
+        // Get the appropriate factory and create the user
+        UserFactory factory = userFactoryProvider.getFactory(role);
+        User user = factory.createUser(username, email, passwordEncoder.encode(password));
+
+        // Save the user
+        User savedUser = userRepository.save(user);
+        log.info("User created successfully with ID: {}", savedUser.getId());
+
+        return savedUser;
     }
 
     public List<User> getAllUsers() {

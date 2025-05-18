@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
@@ -102,6 +103,22 @@ public class GlobalExceptionHandler {
         error.put("error", "Invalid or tampered JWT token.");
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(error);
+    }
+
+    /**
+     * Handles access denied errors thrown when a user does not have sufficient privileges.
+     *
+     * @param e the AccessDeniedException
+     * @return A ResponseEntity with a 403 Forbidden error message.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException e) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "You do not have permission to access this resource.");
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(error);
     }
