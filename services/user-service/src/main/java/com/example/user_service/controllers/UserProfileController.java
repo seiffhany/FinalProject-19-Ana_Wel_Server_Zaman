@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import com.example.user_service.dto.UserProfileDTO;
 import com.example.user_service.models.User;
+import com.example.user_service.services.PublicUserProfileService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,14 +23,11 @@ import com.example.user_service.services.UserProfileService;
 
 @RestController
 @RequestMapping("${api.base.url}/profile")
+@RequiredArgsConstructor
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
-
-    @Autowired
-    public UserProfileController(UserProfileService userProfileService) {
-        this.userProfileService = userProfileService;
-    }
+    private final PublicUserProfileService publicUserProfileService;
 
     @GetMapping
     public ResponseEntity<List<UserProfile>> getAllProfiles() {
@@ -37,8 +36,9 @@ public class UserProfileController {
 
     @GetMapping("/{username}")
     public ResponseEntity<UserProfileDTO> getFullProfileByUsername(@PathVariable String username) {
-        return ResponseEntity.ok(userProfileService.getFullProfileByUsername(username));
+        return ResponseEntity.ok(publicUserProfileService.getFullProfileByUsername(username));
     }
+
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<UserProfile> getProfileByUserId(@PathVariable UUID userId) {
