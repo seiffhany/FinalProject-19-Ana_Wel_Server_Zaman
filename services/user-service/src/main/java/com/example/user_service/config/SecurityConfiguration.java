@@ -43,7 +43,8 @@ public class SecurityConfiguration {
                         req.requestMatchers(
                                         apiBaseUrl + "/auth/login",  // Permit login
                                         apiBaseUrl + "/auth/register", // Permit authenticate endpoint
-                                        apiBaseUrl + "/seed/**"  // Permit seed data
+                                        apiBaseUrl + "/seed/**",  // Permit seed data
+                                        apiBaseUrl + "/profile/**"
                                 )
                                 .permitAll() // Allow all requests to the auth endpoint
                                 .anyRequest()
