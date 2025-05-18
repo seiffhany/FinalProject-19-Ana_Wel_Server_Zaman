@@ -9,14 +9,7 @@ import com.example.user_service.services.PublicUserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.user_service.models.UserProfile;
 import com.example.user_service.services.UserProfileService;
@@ -75,14 +68,14 @@ public class UserProfileController {
         return userProfileService.getUserFollowing(id);
     }
 
-    @PutMapping("/{id}/follow/{followedId}")
-    public ResponseEntity<String> followUser(@PathVariable UUID id, @PathVariable UUID followedId) {
+    @PutMapping("/follow/{followedId}")
+    public ResponseEntity<String> followUser(@RequestHeader("userId") UUID id, @PathVariable UUID followedId) {
         userProfileService.followUser(id, followedId);
         return ResponseEntity.ok("Followed successfully");
     }
 
-    @PutMapping("/{id}/unfollow/{followedId}")
-    public ResponseEntity<String> unfollowUser(@PathVariable UUID id, @PathVariable UUID followedId) {
+    @PutMapping("/unfollow/{followedId}")
+    public ResponseEntity<String> unfollowUser(@RequestHeader("userId") UUID id, @PathVariable UUID followedId) {
         userProfileService.unFollowUser(id, followedId);
         return ResponseEntity.ok("Unfollowed successfully");
     }

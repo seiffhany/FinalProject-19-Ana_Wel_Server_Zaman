@@ -1,9 +1,11 @@
 package com.example.user_service.controllers;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -121,6 +123,40 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.FORBIDDEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(error);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, String>> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+        Map<String, String> error = new HashMap<>();
+
+        // Check if the root cause is an InvalidFormatException (e.g., enum deserialization error)
+        Throwable cause = e.getCause();
+        if (cause instanceof InvalidFormatException ife) {
+            String fieldName = "";
+            if (!ife.getPath().isEmpty()) {
+                fieldName = ife.getPath().get(0).getFieldName(); // get field name (e.g., "role")
+            }
+            String invalidValue = ife.getValue().toString(); // value like "dsdsd"
+            Class<?> targetType = ife.getTargetType(); // class it's trying to deserialize into
+
+            if (targetType.isEnum()) {
+                Object[] enumConstants = targetType.getEnumConstants();
+                String allowedValues = "";
+                for (Object constant : enumConstants) {
+                    allowedValues += constant.toString() + ", ";
+                }
+                allowedValues = allowedValues.replaceAll(", $", ""); // remove trailing comma
+                error.put(fieldName, String.format(
+                        "Invalid value '%s' for field '%s'. Allowed values: [%s].",
+                        invalidValue, fieldName, allowedValues
+                ));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            }
+        }
+
+        // Fallback if it's not an enum or unknown format issue
+        error.put("error", "Malformed JSON request or invalid data format.");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
 

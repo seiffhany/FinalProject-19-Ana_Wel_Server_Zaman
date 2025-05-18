@@ -3,8 +3,7 @@ package com.example.user_service.controllers;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,22 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.user_service.models.User;
 
 import com.example.user_service.services.UserService;
-import com.example.user_service.service.UserDataService;
-import com.example.user_service.dto.QuestionDTO;
-import com.example.user_service.dto.AnswerDTO;
 
 
 @RestController
 @RequestMapping("${api.base.url}")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-    private final UserDataService userDataService;
-
-    public UserController(UserService userService, UserDataService userDataService) {
-        this.userService = userService;
-        this.userDataService = userDataService;
-    }
 
     @GetMapping
     public List<User> getAllUsers() {
@@ -39,10 +30,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable UUID id) {
-        User user = userService.getUserById(id).get();
-        List<QuestionDTO> userQuestions = userDataService.getUserQuestions(id);
-        List<AnswerDTO> userAnswers = userDataService.getUserAnswers(id);
-        return user;
+        return userService.getUserById(id).get();
     }
 
     @GetMapping("/username/{username}")
