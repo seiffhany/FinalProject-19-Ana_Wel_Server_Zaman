@@ -29,12 +29,10 @@ import com.example.question_service.rabbitmq.RabbitMQProducer;
 import com.example.question_service.service.QuestionService;
 
 import jakarta.validation.constraints.Pattern;
-import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/questions")
 @Validated
-@Slf4j
 public class QuestionController {
 
     private final QuestionService questionService;
@@ -247,7 +245,6 @@ public class QuestionController {
     }
 
     private ResponseEntity<ErrorBody> unknown(Exception e) {
-        log.error("Unexpected error", e);
         return err(HttpStatus.INTERNAL_SERVER_ERROR, new RuntimeException("Internal server error"));
     }
 }
