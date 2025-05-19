@@ -65,9 +65,9 @@ public class QuestionController {
 
     @PostMapping
     public ResponseEntity<Question> createQuestion(@RequestBody Question question,
-            @RequestHeader("userId") UUID authorId) {
+            @RequestHeader("userId") UUID authorId, @RequestHeader("username") String authorUsername) {
         question.setAuthorId(authorId);
-        return ResponseEntity.ok(questionService.addQuestion(question, authorId));
+        return ResponseEntity.ok(questionService.addQuestion(question, authorId, authorUsername));
     }
 
     @GetMapping

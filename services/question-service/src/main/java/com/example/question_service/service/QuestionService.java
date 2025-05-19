@@ -52,7 +52,7 @@ public class QuestionService {
     }
 
     // CREATE
-    public Question addQuestion(Question questionInput, UUID authorId) {
+    public Question addQuestion(Question questionInput, UUID authorId, String authorUsername) {
         Question question = new QuestionBuilder()
                 .title(questionInput.getTitle())
                 .body(questionInput.getBody())
@@ -64,9 +64,8 @@ public class QuestionService {
         String[] recipientUsersEmails = followers.stream()
                 .map(UserDTO::getEmail)
                 .toArray(String[]::new);
-        
-        rabbitMQProducer.sendQuestionCreatedNotification(recipientUsersEmails, question.getTitle(),
-                question.getAuthorId().toString());
+
+        rabbitMQProducer.sendQuestionCreatedNotification(recipientUsersEmails, question.getTitle(), authorUsername);
         return questionRepository.save(question);
     }
 
