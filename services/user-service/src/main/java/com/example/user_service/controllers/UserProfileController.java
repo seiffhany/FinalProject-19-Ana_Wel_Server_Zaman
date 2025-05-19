@@ -78,8 +78,8 @@ public class UserProfileController {
     @PutMapping("/follow/{followedId}")
     public ResponseEntity<String> followUser(@RequestHeader("userId") UUID id, @PathVariable UUID followedId) {
         // return the userId
-         userProfileService.followUser(id, followedId);
-         return ResponseEntity.ok("Followed successfully");
+        userProfileService.followUser(id, followedId);
+        return ResponseEntity.ok("Followed successfully");
     }
 
     @PutMapping("/unfollow/{followedId}")

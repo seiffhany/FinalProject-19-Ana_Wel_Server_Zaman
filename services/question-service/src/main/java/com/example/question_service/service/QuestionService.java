@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.question_service.dto.UserDTO;
 import com.example.question_service.exception.AuthorNotFoundException;
 import com.example.question_service.exception.InvalidSortCriterionException;
 import com.example.question_service.exception.QuestionNotFoundException;
@@ -51,6 +52,25 @@ public class QuestionService {
     }
 
     // CREATE
+    public Question addQuestion(Question questionInput, UUID authorId) {
+        Question question = new QuestionBuilder()
+                .title(questionInput.getTitle())
+                .body(questionInput.getBody())
+                .author(questionInput.getAuthorId())
+                .tags(questionInput.getTags())
+                .build();
+
+        List<UserDTO> followers = userClient.getUserFollowers(authorId);
+        String[] recipientUsersEmails = followers.stream()
+                .map(UserDTO::getEmail)
+                .toArray(String[]::new);
+        
+        rabbitMQProducer.sendQuestionCreatedNotification(recipientUsersEmails, question.getTitle(),
+                question.getAuthorId().toString());
+        return questionRepository.save(question);
+    }
+
+    // CREATE for Seeder
     public Question addQuestion(Question questionInput) {
         Question question = new QuestionBuilder()
                 .title(questionInput.getTitle())
@@ -58,6 +78,7 @@ public class QuestionService {
                 .author(questionInput.getAuthorId())
                 .tags(questionInput.getTags())
                 .build();
+
         return questionRepository.save(question);
     }
 
@@ -121,22 +142,30 @@ public class QuestionService {
     }
 
     @Transactional
-    public Question upvote(UUID id) {
+    public Question upvote(UUID id, String upvoterUsername) {
         Question q = getQuestion(id);
         q.setVoteCount(q.getVoteCount() + 1);
+        String authorId = q.getAuthorId().toString();
+        UserDTO author = userClient.getUserById(UUID.fromString(authorId));
+        if (author != null)
+            rabbitMQProducer.sendUpvoteNotification(author.getEmail(), q.getTitle(), upvoterUsername);
         return questionRepository.save(q);
     }
 
     @Transactional
-    public Question downvote(UUID id) {
+    public Question downvote(UUID id, String downvoterUsername) {
         Question q = getQuestion(id);
         q.setVoteCount(q.getVoteCount() - 1);
+        String authorId = q.getAuthorId().toString();
+        UserDTO author = userClient.getUserById(UUID.fromString(authorId));
+        if (author != null)
+            rabbitMQProducer.sendDownvoteNotification(author.getEmail(), q.getTitle(), downvoterUsername);
         return questionRepository.save(q);
     }
 
     @Transactional
     public List<Question> byAuthor(UUID authorId) {
-        if (!userClient.doesUserExist(authorId))
+        if (userClient.getUserById(authorId) == null)
             throw new AuthorNotFoundException(authorId);
 
         List<Question> questions = questionRepository.findByAuthorId(authorId);

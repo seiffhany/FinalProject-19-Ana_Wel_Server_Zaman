@@ -37,23 +37,16 @@ public class RabbitMQProducer {
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
     }
 
-    public void sendViewCountNotification(String questionCreatorUserId, String questionContent, int viewCount) {
-        NotificationMessage message = NotificationMessage.builder()
-                .category(NotificationCategory.QUESTION_VIEW_COUNT)
-                .type(NotificationType.IN_APP_NOTIFICATION)
-                .recipientEmails(Arrays.asList(questionCreatorUserId))
-                .content(questionContent + "|" + viewCount)
-                .build();
-        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
-    }
-
-    public void sendQuestionCreatedNotification(String[] recipientUsersIds, String questionContent, String userName) {
+    public void sendQuestionCreatedNotification(String[] recipientUsersEmails, String questionContent,
+            String userName) {
         NotificationMessage message = NotificationMessage.builder()
                 .category(NotificationCategory.QUESTION_NEW)
                 .type(NotificationType.IN_APP_NOTIFICATION)
-                .recipientEmails(Arrays.asList(recipientUsersIds))
+                .recipientEmails(Arrays.asList(recipientUsersEmails))
                 .content(questionContent + "|" + userName)
                 .build();
+        System.out.println("Sending question created notification to " + Arrays.toString(recipientUsersEmails));
+        System.out.println("Message: " + questionContent);
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
     }
 

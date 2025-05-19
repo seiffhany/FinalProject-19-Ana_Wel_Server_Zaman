@@ -1,14 +1,19 @@
 package com.example.question_service.service.client;
 
-import org.springframework.stereotype.Component;
-
+import java.util.List;
 import java.util.UUID;
 
-@Component
-public class UserClient {
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
-    /**  TODO: Call User Service (REST/Feign).  For now always true. */
-    public boolean doesUserExist(UUID userId) {
-        return true;          // replace with real check later
-    }
+import com.example.question_service.dto.UserDTO;
+
+@FeignClient(name = "user-service", url = "${user.service.url}")
+public interface UserClient {
+    @GetMapping("/{userId}")
+    UserDTO getUserById(@PathVariable("userId") UUID userId);
+
+    @GetMapping("/profile/followers/{userId}")
+    List<UserDTO> getUserFollowers(@PathVariable("userId") UUID userId);
 }
