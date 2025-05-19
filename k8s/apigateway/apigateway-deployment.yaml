@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: apigateway-service
-          image: youssefaymana/apigateway
+          image: seiffhany/api-gateway
           ports:
             - containerPort: 8080
           env:
