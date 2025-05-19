@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,7 +23,7 @@ import com.example.answer_service.model.Answer;
 import com.example.answer_service.service.AnswerService;
 
 @RestController
-@RequestMapping("/answer")
+@RequestMapping("/answers")
 public class AnswerController {
     private final AnswerService answerService;
 
@@ -32,12 +33,12 @@ public class AnswerController {
     }
 
     @PostMapping("/addAnswer")
-    public Answer addAnswer(@RequestBody Answer answer, @RequestParam UUID loggedInUser) {
+    public Answer addAnswer(@RequestBody Answer answer, @RequestHeader("userId") UUID loggedInUser) {
         return this.answerService.addAnswer(answer, loggedInUser);
     }
 
     @PostMapping("/replyToAnswer")
-    public Answer replyToAnswer(@RequestBody Answer answer, @RequestParam UUID loggedInUser) {
+    public Answer replyToAnswer(@RequestBody Answer answer, @RequestHeader("userId") UUID loggedInUser) {
         return this.answerService.replyToAnswer(answer, loggedInUser);
     }
 
@@ -88,8 +89,8 @@ public class AnswerController {
 
     // Add it lama ngeeb el user token
     // Mesh hayenfa3 ykoon fy etnen methods b nafs el Get mapping path
-    @GetMapping("/user/logged-in/{userId}")
-    public ResponseEntity<?> getAnswersByLoggedInUser(@PathVariable UUID userId) {
+    @GetMapping("/user/logged-in")
+    public ResponseEntity<?> getAnswersByLoggedInUser(@RequestHeader("userId") UUID userId) {
         try {
             List<Answer> answers = answerService.getAnswersByLoggedInUser(userId);
             return ResponseEntity.ok(answers);
@@ -115,7 +116,7 @@ public class AnswerController {
     @DeleteMapping("/{answerId}")
     public ResponseEntity<String> deleteAnswer(@PathVariable UUID answerId) {
         try {
-            answerService.deleteAnswer(answerId);
+            answerService.deleteAnswer(answerId, true);
             return ResponseEntity.ok("Answer and its children deleted successfully!");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -142,7 +143,7 @@ public class AnswerController {
     @PostMapping("/upvote/{answerId}")
     public ResponseEntity<?> upVoteAnswer(
             @PathVariable UUID answerId,
-            @RequestParam UUID userId) {
+            @RequestHeader("userId") UUID userId) {
         try {
             answerService.upVoteAnswer(answerId, userId);
             return ResponseEntity.ok("Answer upvoted successfully!");
@@ -155,7 +156,7 @@ public class AnswerController {
     @PostMapping("/downvote/{answerId}")
     public ResponseEntity<?> downVoteAnswer(
             @PathVariable UUID answerId,
-            @RequestParam UUID userId) {
+            @RequestHeader("userId") UUID userId) {
         try {
             answerService.downVoteAnswer(answerId, userId);
             return ResponseEntity.ok("Answer downvoted successfully!");
@@ -166,7 +167,8 @@ public class AnswerController {
     }
 
     @PutMapping("/markBestAnswer/{answerId}")
-    public ResponseEntity<String> markBestAnswer(@PathVariable UUID answerId, @RequestParam UUID loggedInUser) {
+    public ResponseEntity<String> markBestAnswer(@PathVariable UUID answerId,
+            @RequestHeader("userId") UUID loggedInUser) {
         this.answerService.markBestAnswer(answerId, loggedInUser);
 
         return ResponseEntity.ok("Marked Message");

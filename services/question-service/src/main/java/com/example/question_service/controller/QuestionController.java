@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -63,7 +64,9 @@ public class QuestionController {
     }
 
     @PostMapping
-    public ResponseEntity<Question> createQuestion(@RequestBody Question question) {
+    public ResponseEntity<Question> createQuestion(@RequestBody Question question,
+            @RequestHeader("userId") UUID authorId) {
+        question.setAuthorId(authorId);
         return ResponseEntity.ok(questionService.addQuestion(question));
     }
 
@@ -80,13 +83,15 @@ public class QuestionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Question> updateQuestion(@PathVariable UUID id, @RequestBody Question updated) {
-        return ResponseEntity.ok(questionService.updateQuestion(id, updated));
+    public ResponseEntity<Question> updateQuestion(@PathVariable UUID id, @RequestBody Question updated,
+            @RequestHeader("userId") UUID requestOwner) {
+        return ResponseEntity.ok(questionService.updateQuestion(id, updated, requestOwner));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteQuestion(@PathVariable UUID id) {
-        questionService.deleteQuestion(id);
+    public ResponseEntity<Void> deleteQuestion(@PathVariable UUID id, @RequestHeader("userId") UUID requestOwner,
+            @RequestHeader("roles") String role) {
+        questionService.deleteQuestion(id, requestOwner, role);
         return ResponseEntity.noContent().build();
     }
 
@@ -128,7 +133,7 @@ public class QuestionController {
     }
 
     @GetMapping("/author/{authorId}")
-    public ResponseEntity<?> byAuthor(@PathVariable String authorId) {
+    public ResponseEntity<?> byAuthor(@PathVariable UUID authorId) {
         try {
             List<Question> list = questionService.byAuthor(authorId);
             return ResponseEntity.ok(list);
@@ -147,7 +152,7 @@ public class QuestionController {
         Question q1 = new QuestionBuilder()
                 .title("How to implement JWT authentication in Spring Boot?")
                 .body("I'm building a Spring Boot application and need to implement JWT authentication. What are the best practices and steps to follow?")
-                .author("user1")
+                .author(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
                 .tags(Arrays.asList("java", "spring-boot", "jwt", "security"))
                 .build();
         questions.add(questionService.addQuestion(q1));
@@ -156,7 +161,7 @@ public class QuestionController {
         Question q2 = new QuestionBuilder()
                 .title("Best practices for microservices communication")
                 .body("What are the recommended patterns for service-to-service communication in a microservices architecture?")
-                .author("user2")
+                .author(UUID.fromString("123e4567-e89b-12d3-a456-426614174001"))
                 .tags(Arrays.asList("microservices", "architecture", "distributed-systems"))
                 .build();
         questions.add(questionService.addQuestion(q2));
@@ -165,7 +170,7 @@ public class QuestionController {
         Question q3 = new QuestionBuilder()
                 .title("Docker vs Kubernetes: When to use what?")
                 .body("I'm confused about when to use Docker and when to use Kubernetes. Can someone explain the key differences and use cases?")
-                .author("user3")
+                .author(UUID.fromString("123e4567-e89b-12d3-a456-426614174002"))
                 .tags(Arrays.asList("docker", "kubernetes", "containerization", "devops"))
                 .build();
         questions.add(questionService.addQuestion(q3));
@@ -174,7 +179,7 @@ public class QuestionController {
         Question q4 = new QuestionBuilder()
                 .title("Implementing CQRS pattern in Spring Boot")
                 .body("I want to implement CQRS in my Spring Boot application. What are the key components and how should I structure my code?")
-                .author("user1")
+                .author(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
                 .tags(Arrays.asList("java", "spring-boot", "cqrs", "design-patterns"))
                 .build();
         questions.add(questionService.addQuestion(q4));
@@ -183,7 +188,7 @@ public class QuestionController {
         Question q5 = new QuestionBuilder()
                 .title("Best practices for API versioning")
                 .body("What are the different approaches to version REST APIs and what are their pros and cons?")
-                .author("user4")
+                .author(UUID.fromString("123e4567-e89b-12d3-a456-426614174003"))
                 .tags(Arrays.asList("api-design", "rest", "versioning"))
                 .build();
         questions.add(questionService.addQuestion(q5));
@@ -192,7 +197,7 @@ public class QuestionController {
         Question q6 = new QuestionBuilder()
                 .title("Handling distributed transactions in microservices")
                 .body("How do you handle transactions that span multiple microservices? What patterns are available?")
-                .author("user2")
+                .author(UUID.fromString("123e4567-e89b-12d3-a456-426614174001"))
                 .tags(Arrays.asList("microservices", "transactions", "distributed-systems"))
                 .build();
         questions.add(questionService.addQuestion(q6));
@@ -201,7 +206,7 @@ public class QuestionController {
         Question q7 = new QuestionBuilder()
                 .title("Implementing rate limiting in Spring Boot")
                 .body("What's the best way to implement rate limiting in a Spring Boot application? Are there any good libraries?")
-                .author("user3")
+                .author(UUID.fromString("123e4567-e89b-12d3-a456-426614174002"))
                 .tags(Arrays.asList("java", "spring-boot", "rate-limiting", "security"))
                 .build();
         questions.add(questionService.addQuestion(q7));
@@ -210,7 +215,7 @@ public class QuestionController {
         Question q8 = new QuestionBuilder()
                 .title("Best practices for logging in microservices")
                 .body("How should I structure logging in a microservices architecture? What tools and patterns are recommended?")
-                .author("user4")
+                .author(UUID.fromString("123e4567-e89b-12d3-a456-426614174003"))
                 .tags(Arrays.asList("microservices", "logging", "monitoring"))
                 .build();
         questions.add(questionService.addQuestion(q8));
@@ -219,7 +224,7 @@ public class QuestionController {
         Question q9 = new QuestionBuilder()
                 .title("Implementing event sourcing with Spring Boot")
                 .body("I want to implement event sourcing in my Spring Boot application. What are the key components and considerations?")
-                .author("user1")
+                .author(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
                 .tags(Arrays.asList("java", "spring-boot", "event-sourcing", "ddd"))
                 .build();
         questions.add(questionService.addQuestion(q9));
@@ -228,7 +233,7 @@ public class QuestionController {
         Question q10 = new QuestionBuilder()
                 .title("Best practices for API documentation")
                 .body("What tools and approaches do you recommend for documenting REST APIs? How to keep documentation in sync with code?")
-                .author("user2")
+                .author(UUID.fromString("123e4567-e89b-12d3-a456-426614174001"))
                 .tags(Arrays.asList("api-documentation", "swagger", "openapi"))
                 .build();
         questions.add(questionService.addQuestion(q10));

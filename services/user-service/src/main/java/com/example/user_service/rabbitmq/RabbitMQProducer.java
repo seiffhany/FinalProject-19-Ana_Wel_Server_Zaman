@@ -29,7 +29,7 @@ public class RabbitMQProducer {
     public void sendLoginNotification(String notificationReceiverEmail, String device, String location) {
         NotificationMessage message = NotificationMessage.builder()
                 .category(NotificationCategory.USER_LOGIN)
-                .type(NotificationType.IN_APP_NOTIFICATION)
+                .type(NotificationType.EMAIL_NOTIFICATION)
                 .recipientEmails(Arrays.asList(notificationReceiverEmail))
                 .content(device + "|" + location)
                 .build();

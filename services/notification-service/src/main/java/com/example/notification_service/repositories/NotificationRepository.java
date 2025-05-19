@@ -6,14 +6,12 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import com.example.notification_service.factory.Notification;
-import com.example.notification_service.factory.NotificationType;
 
 @Repository
 public interface NotificationRepository extends MongoRepository<Notification, String> {
-    List<Notification> findAllByRecipientEmailAndTypeAndArchivedIsTrue(String recipientEmail, NotificationType type);
+    List<Notification> findAllByRecipientEmailAndIsArchivedIsTrue(String recipientEmail);
 
-    List<Notification> findAllByRecipientEmailAndTypeAndArchivedIsFalse(String recipientEmail, NotificationType type);
+    List<Notification> findAllByRecipientEmailAndIsArchivedIsFalse(String recipientEmail);
 
-    List<Notification> findAllByRecipientEmailAndTypeAndArchivedIsFalseAndReadIsFalse(String recipientEmail,
-            NotificationType type);
+    List<Notification> findAllByRecipientEmailAndIsArchivedIsFalseAndIsReadIsFalse(String recipientEmail);
 }

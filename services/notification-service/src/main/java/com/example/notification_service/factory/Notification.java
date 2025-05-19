@@ -12,22 +12,16 @@ public abstract class Notification {
     private boolean isRead;
     private String recipientEmail;
     private boolean isArchived;
-    private final NotificationMessage.NotificationType type;
 
-    public Notification(String timestamp, String recipientEmail, NotificationMessage.NotificationType type) {
+    public Notification(String timestamp, String recipientEmail) {
         this.timestamp = timestamp;
         this.isRead = false;
         this.recipientEmail = recipientEmail;
         this.isArchived = false;
-        this.type = type;
     }
 
     public String getId() {
         return id;
-    }
-
-    public NotificationMessage.NotificationType getType() {
-        return type;
     }
 
     public String getMessage() {

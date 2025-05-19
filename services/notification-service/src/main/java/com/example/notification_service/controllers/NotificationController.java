@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,13 +19,13 @@ public class NotificationController {
     @Autowired
     private NotificationService notificationService;
 
-    @GetMapping("/{recipientEmail}")
-    public ArrayList<Notification> getAllNotifications(@PathVariable String recipientEmail) {
+    @GetMapping
+    public ArrayList<Notification> getAllNotifications(@RequestHeader("userEmail") String recipientEmail) {
         return notificationService.getAllNotifications(recipientEmail);
     }
 
-    @GetMapping("/unread/{recipientEmail}")
-    public ArrayList<Notification> getUnreadNotifications(@PathVariable String recipientEmail) {
+    @GetMapping("/unread")
+    public ArrayList<Notification> getUnreadNotifications(@RequestHeader("userEmail") String recipientEmail) {
         return notificationService.getUnreadNotifications(recipientEmail);
     }
 
@@ -33,8 +34,8 @@ public class NotificationController {
         notificationService.markAsRead(id);
     }
 
-    @GetMapping("/archived/{recipientEmail}")
-    public ArrayList<Notification> getArchivedNotifications(@PathVariable String recipientEmail) {
+    @GetMapping("/archived")
+    public ArrayList<Notification> getArchivedNotifications(@RequestHeader("userEmail") String recipientEmail) {
         return notificationService.getArchivedNotifications(recipientEmail);
     }
 

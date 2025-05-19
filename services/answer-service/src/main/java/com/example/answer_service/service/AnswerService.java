@@ -1,29 +1,33 @@
 package com.example.answer_service.service;
 
-import com.example.answer_service.clients.QuestionClient;
-import com.example.answer_service.commands.command.Command;
-import com.example.answer_service.commands.concretecommands.MarkBestAnswerCommand;
-import com.example.answer_service.commands.invoker.AnswerInvoker;
-import com.example.answer_service.commands.receiver.AnswerReceiver;
-import com.example.answer_service.dto.CommandDto;
-import com.example.answer_service.model.Answer;
-import com.example.answer_service.repositories.AnswerRepository;
-import com.example.answer_service.strategy_design_pattern.FilterByRecency;
-import com.example.answer_service.strategy_design_pattern.FilterByReplies;
-import com.example.answer_service.strategy_design_pattern.FilterByVotes;
-import com.example.answer_service.strategy_design_pattern.FilterContext;
-import com.example.answer_service.commands.concretecommands.UpVoteCommand;
-import com.example.answer_service.commands.concretecommands.DownVoteCommand;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.example.answer_service.clients.QuestionClient;
+import com.example.answer_service.commands.command.Command;
+import com.example.answer_service.commands.invoker.AnswerInvoker;
+import com.example.answer_service.commands.receiver.AnswerReceiver;
+import com.example.answer_service.dto.CommandDto;
+import com.example.answer_service.dto.DeleteAnswerResponseDTO;
+import com.example.answer_service.model.Answer;
+import com.example.answer_service.rabbitmq.RabbitMQProducer;
+import com.example.answer_service.repositories.AnswerRepository;
+import com.example.answer_service.strategy_design_pattern.FilterByRecency;
+import com.example.answer_service.strategy_design_pattern.FilterByReplies;
+import com.example.answer_service.strategy_design_pattern.FilterByVotes;
+import com.example.answer_service.strategy_design_pattern.FilterContext;
 
 @Service
 public class AnswerService {
@@ -32,17 +36,21 @@ public class AnswerService {
     private FilterContext filterContext;
     private AnswerInvoker answerInvoker;
     private AnswerReceiver answerReceiver;
+    private RabbitMQProducer rabbitMQProducer;
 
     @Autowired
-    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext, AnswerInvoker answerInvoker, AnswerReceiver answerReceiver) {
+    public AnswerService(AnswerRepository answerRepository, QuestionClient questionClient, FilterContext filterContext,
+            AnswerInvoker answerInvoker, AnswerReceiver answerReceiver, RabbitMQProducer rabbitMQProducer) {
         this.answerRepository = answerRepository;
         this.questionClient = questionClient;
         this.filterContext = filterContext;
         this.answerInvoker = answerInvoker;
         this.answerReceiver = answerReceiver;
+        this.rabbitMQProducer = rabbitMQProducer;
     }
 
-    public static Object createInstance(String className, Class<?>[] paramTypes, Object... args) throws ClassNotFoundException, NoSuchMethodException,
+    public static Object createInstance(String className, Class<?>[] paramTypes, Object... args)
+            throws ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
         Class<?> clazz = Class.forName(className);
         return clazz.getDeclaredConstructor(paramTypes).newInstance(args);
@@ -50,9 +58,11 @@ public class AnswerService {
 
     public Answer addAnswer(Answer answer, UUID loggedInUser) {
         try {
-//            questionClient.getQuestionByID(answer.getQuestionID());
+            // questionClient.getQuestionByID(answer.getQuestionID());
             Answer newAnswer = new Answer(answer.getQuestionID(), loggedInUser, answer.getContent());
-            return this.answerRepository.save(newAnswer);
+            Answer saved = this.answerRepository.save(newAnswer);
+            sendAnswerToQuestionService(answer.getQuestionID(), 1);
+            return saved;
         } catch (ResourceNotFoundException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This question ID doesn't exist");
         }
@@ -60,7 +70,7 @@ public class AnswerService {
 
     public Answer replyToAnswer(Answer answer, UUID loggedInUser) {
         try {
-//            questionClient.getQuestionByID(answer.getQuestionID());
+            // questionClient.getQuestionByID(answer.getQuestionID());
             if (answer.getParentID() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad parameters");
             }
@@ -68,10 +78,14 @@ public class AnswerService {
             Answer retrievedParentAnswer = this.answerRepository.findAnswerById(parentID);
             if (retrievedParentAnswer != null) {
                 if (retrievedParentAnswer.getQuestionID().equals(answer.getQuestionID())) {
-                    Answer newAnswer = new Answer(answer.getParentID(), answer.getQuestionID(), loggedInUser, answer.getContent());
-                    return this.answerRepository.save(newAnswer);
+                    Answer newAnswer = new Answer(answer.getParentID(), answer.getQuestionID(), loggedInUser,
+                            answer.getContent());
+                    Answer saved = this.answerRepository.save(newAnswer);
+                    sendAnswerToQuestionService(answer.getQuestionID(), 1);
+                    return saved;
                 } else
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This parent answer ID doesn't belong to the same question ID of the input question ID");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "This parent answer ID doesn't belong to the same question ID of the input question ID");
             } else
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This parent answer ID doesn't exist");
         } catch (ResourceNotFoundException ex) {
@@ -81,11 +95,12 @@ public class AnswerService {
 
     public List<Answer> getFilteredAnswers(UUID questionID, String filter) {
         try {
-//            questionClient.getQuestionByID(answer.getQuestionID());
+            // questionClient.getQuestionByID(answer.getQuestionID());
             List<Answer> answers = this.answerRepository.findByQuestionID(questionID);
-            if (answers.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The question doesn't have associated answers");
-            }
+            // if (answers.isEmpty()) {
+            // throw new ResponseStatusException(HttpStatus.NOT_FOUND, "The question doesn't
+            // have associated answers");
+            // }
 
             switch (filter.toLowerCase()) {
                 case "recency":
@@ -103,7 +118,8 @@ public class AnswerService {
 
             return this.filterContext.filter(answers);
         } catch (ResourceNotFoundException ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This question ID doesn't exist or the question doesn't have associated answers");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "This question ID doesn't exist.");
         }
     }
 
@@ -113,17 +129,18 @@ public class AnswerService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found");
         }
 
-
-//        if (!loggedInUser.equals(questionClient.getQuestionOwnerId)) {
-//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the author of this answer");
-//        }
+        if (!loggedInUser.equals(questionClient.getQuestionById(answer.getQuestionID()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the author of this answer");
+        }
 
         if (answer.getParentID() != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A reply cannot be marked as best answer");
         }
 
         try {
-            Command markBestAnswerCommand = (Command) createInstance("com.example.answer_service.commands.concretecommands.MarkBestAnswerCommand", new Class<?>[]{AnswerReceiver.class}, answerReceiver);
+            Command markBestAnswerCommand = (Command) createInstance(
+                    "com.example.answer_service.commands.concretecommands.MarkBestAnswerCommand",
+                    new Class<?>[] { AnswerReceiver.class }, answerReceiver);
             answerInvoker.setCommand(markBestAnswerCommand);
 
             List<Answer> allAnswers = answerRepository.findByQuestionID(answer.getQuestionID());
@@ -146,7 +163,7 @@ public class AnswerService {
     }
 
     public void upVoteAnswer(UUID answerId, UUID loggedInUser) {
-        //            questionClient.getQuestionByID(answer.getQuestionID());
+        // questionClient.getQuestionByID(answer.getQuestionID());
 
         Answer answer = answerRepository.findAnswerById(answerId);
 
@@ -155,8 +172,12 @@ public class AnswerService {
         }
 
         try {
-            Command upVoteCommand = (Command) createInstance("com.example.answer_service.commands.concretecommands.UpVoteCommand", new Class<?>[]{AnswerReceiver.class}, answerReceiver);
-            Command downVoteCommand = (Command) createInstance("com.example.answer_service.commands.concretecommands.DownVoteCommand", new Class<?>[]{AnswerReceiver.class}, answerReceiver);
+            Command upVoteCommand = (Command) createInstance(
+                    "com.example.answer_service.commands.concretecommands.UpVoteCommand",
+                    new Class<?>[] { AnswerReceiver.class }, answerReceiver);
+            Command downVoteCommand = (Command) createInstance(
+                    "com.example.answer_service.commands.concretecommands.DownVoteCommand",
+                    new Class<?>[] { AnswerReceiver.class }, answerReceiver);
             CommandDto commandDto = new CommandDto(answer, loggedInUser);
 
             // Check if user has already upvoted
@@ -180,14 +201,15 @@ public class AnswerService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
             }
         } catch (ResponseStatusException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process upvote: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to process upvote: " + e.getMessage());
         }
     }
 
     public void downVoteAnswer(UUID answerId, UUID loggedInUser) {
-        //            questionClient.getQuestionByID(answer.getQuestionID());
+        // questionClient.getQuestionByID(answer.getQuestionID());
         Answer answer = answerRepository.findAnswerById(answerId);
 
         if (answer == null) {
@@ -195,8 +217,12 @@ public class AnswerService {
         }
 
         try {
-            Command upVoteCommand = (Command) createInstance("com.example.answer_service.commands.concretecommands.UpVoteCommand", new Class<?>[]{AnswerReceiver.class}, answerReceiver);
-            Command downVoteCommand = (Command) createInstance("com.example.answer_service.commands.concretecommands.DownVoteCommand", new Class<?>[]{AnswerReceiver.class}, answerReceiver);
+            Command upVoteCommand = (Command) createInstance(
+                    "com.example.answer_service.commands.concretecommands.UpVoteCommand",
+                    new Class<?>[] { AnswerReceiver.class }, answerReceiver);
+            Command downVoteCommand = (Command) createInstance(
+                    "com.example.answer_service.commands.concretecommands.DownVoteCommand",
+                    new Class<?>[] { AnswerReceiver.class }, answerReceiver);
             CommandDto commandDto = new CommandDto(answer, loggedInUser);
 
             // Check if user has already downvoted
@@ -222,9 +248,10 @@ public class AnswerService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
             }
         } catch (ResponseStatusException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process downvote: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to process downvote: " + e.getMessage());
         }
     }
 
@@ -240,21 +267,30 @@ public class AnswerService {
         }
     }
 
-    public void deleteAnswer(UUID answerId) {
+    public DeleteAnswerResponseDTO deleteAnswer(UUID answerId, boolean isRoot) {
         Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
         if (optionalAnswer.isPresent()) {
             Answer answer = optionalAnswer.get();
-
             List<Answer> childAnswers = answerRepository.findByParentID(answer.getId());
+            int totalDeleted = 1; // Count the current answer
+
             for (Answer child : childAnswers) {
-                deleteAnswer(child.getId());
+                DeleteAnswerResponseDTO childResult = deleteAnswer(child.getId(), false);
+                totalDeleted += childResult.getTotalAnswersDeleted();
             }
 
             answerRepository.delete(answer);
-        }
-        else {
+            if (isRoot) {
+                sendAnswerToQuestionService(answer.getQuestionID(), totalDeleted * -1);
+            }
+            return new DeleteAnswerResponseDTO(totalDeleted, answerId);
+        } else {
             throw new RuntimeException("Answer not found with id: " + answerId);
         }
+    }
+
+    public void sendAnswerToQuestionService(UUID questionId, int count) {
+        this.rabbitMQProducer.sendAnswerToQuestionService(questionId.toString(), count);
     }
 
     public Answer getAnswerById(UUID answerId) {
@@ -265,7 +301,7 @@ public class AnswerService {
         }
     }
 
-    //Add it lama ngeeb el user token
+    // Add it lama ngeeb el user token
     public List<Answer> getAnswersByLoggedInUser(UUID userId) {
         return answerRepository.findByUserId(userId);
     }
@@ -278,7 +314,8 @@ public class AnswerService {
             }
             return answers;
         } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve user's answers", ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve user's answers",
+                    ex);
         }
     }
 
@@ -289,12 +326,11 @@ public class AnswerService {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No  question with this  id: " + questionId);
             }
             answerRepository.deleteAll(answers);
-        }
-        catch (ResourceNotFoundException ex) {
+        } catch (ResourceNotFoundException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No question found with id: " + questionId);
-        }
-        catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete answers for question", ex);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete answers for question",
+                    ex);
         }
     }
 
@@ -342,9 +378,10 @@ public class AnswerService {
         collectAllReplies(answerId, parentToChildren, allReplies);
         return allReplies;
     }
+
     private void collectAllReplies(UUID parentId,
-                                   Map<UUID, List<Answer>> parentToChildren,
-                                   List<Answer> result) {
+            Map<UUID, List<Answer>> parentToChildren,
+            List<Answer> result) {
         List<Answer> directReplies = parentToChildren.getOrDefault(parentId, Collections.emptyList());
         result.addAll(directReplies);
         for (Answer reply : directReplies) {

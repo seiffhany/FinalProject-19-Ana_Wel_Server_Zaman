@@ -8,7 +8,7 @@ import com.example.notification_service.utils.NotificationMessage;
 public class Upvote_Downvote extends Notification {
 
     public Upvote_Downvote(String timestamp, String recipientEmail) {
-        super(timestamp, recipientEmail, NotificationMessage.NotificationType.IN_APP_NOTIFICATION);
+        super(timestamp, recipientEmail);
     }
 
     @Override

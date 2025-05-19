@@ -58,7 +58,8 @@ public class RabbitMQProducer {
     }
 
     public void sendQuestionDeletedToAnswerService(String questionId) {
-        rabbitTemplate.convertAndSend(RabbitMQConfig.QUESTION_EXCHANGE_NAME, RabbitMQConfig.ANSWER_ROUTING_KEY,
+        rabbitTemplate.convertAndSend(RabbitMQConfig.QUESTION_DELETED_EXCHANGE_NAME,
+                RabbitMQConfig.QUESTION_DELETED_ROUTING_KEY,
                 questionId);
     }
 }

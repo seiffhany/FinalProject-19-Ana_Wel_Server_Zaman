@@ -30,7 +30,7 @@ public class EmailNotificationStrategy implements NotificationStrategy {
                 subject = "You've Registered Successfully!!";
             }
 
-            notificationRepository.save(notification);
+//            notificationRepository.save(notification);
 
             SimpleMailMessage mailMessage = new SimpleMailMessage();
             mailMessage.setTo(email);

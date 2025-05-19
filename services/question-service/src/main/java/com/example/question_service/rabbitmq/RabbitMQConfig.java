@@ -16,7 +16,6 @@ public class RabbitMQConfig {
     public static final String QUEUE_NAME = "notificationQueue";
     public static final String EXCHANGE_NAME = "notificationExchange";
     public static final String NOTIFICATION_ROUTING_KEY = "notificationRoutingKey";
-    public static final String QUESTION_ROUTING_KEY = "questionRoutingKey";
 
     /**
      * The queue is used to store messages related to notifications.
@@ -51,6 +50,8 @@ public class RabbitMQConfig {
 
     public static final String QUESTION_QUEUE_NAME = "questionQueue";
     public static final String QUESTION_EXCHANGE_NAME = "questionExchange";
+    public static final String QUESTION_ROUTING_KEY = "questionRoutingKey";
+
     public static final String ANSWER_ROUTING_KEY = "answerRoutingKey";
 
     @Bean
@@ -69,6 +70,28 @@ public class RabbitMQConfig {
                 .bind(questionQueue)
                 .to(questionExchange)
                 .with(QUESTION_ROUTING_KEY);
+    }
+
+    public static final String QUESTION_DELETED_QUEUE_NAME = "question_deleted_queue";
+    public static final String QUESTION_DELETED_ROUTING_KEY = "question_deleted_routing_key";
+    public static final String QUESTION_DELETED_EXCHANGE_NAME = "question_deleted_exchange";
+
+    @Bean
+    public Queue questionDeletedQueue() {
+        return new Queue(QUESTION_DELETED_QUEUE_NAME);
+    }
+
+    @Bean
+    public TopicExchange questionDeletedExchange() {
+        return new TopicExchange(QUESTION_DELETED_EXCHANGE_NAME);
+    }
+
+    @Bean
+    public Binding questionDeletedBinding(Queue questionDeletedQueue, TopicExchange questionDeletedExchange) {
+        return BindingBuilder
+                .bind(questionDeletedQueue)
+                .to(questionDeletedExchange)
+                .with(QUESTION_DELETED_ROUTING_KEY);
     }
 
     @Bean

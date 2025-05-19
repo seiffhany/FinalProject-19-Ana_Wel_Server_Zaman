@@ -15,6 +15,7 @@ import com.example.question_service.exception.InvalidSortCriterionException;
 import com.example.question_service.exception.QuestionNotFoundException;
 import com.example.question_service.model.Question;
 import com.example.question_service.model.builder.QuestionBuilder;
+import com.example.question_service.rabbitmq.RabbitMQProducer;
 import com.example.question_service.repository.QuestionRepository;
 import com.example.question_service.service.client.UserClient;
 import com.example.question_service.service.filter.TagFilterStrategy;
@@ -29,6 +30,7 @@ import com.example.question_service.service.sort.VoteCountSortStrategy;
 public class QuestionService {
     private final QuestionRepository questionRepository;
     private final UserClient userClient;
+    private final RabbitMQProducer rabbitMQProducer;
 
     /* ---------- Sort strategies ---------- */
     private static final Map<String, SortStrategy> SORT_MAP = Map.of(
@@ -41,9 +43,11 @@ public class QuestionService {
     private final TitleFilterStrategy titleFilter = new TitleFilterStrategy();
 
     @Autowired
-    public QuestionService(QuestionRepository questionRepository, UserClient userClient) {
+    public QuestionService(QuestionRepository questionRepository, UserClient userClient,
+            RabbitMQProducer rabbitMQProducer) {
         this.questionRepository = questionRepository;
         this.userClient = userClient;
+        this.rabbitMQProducer = rabbitMQProducer;
     }
 
     // CREATE
@@ -72,9 +76,12 @@ public class QuestionService {
     }
 
     // UPDATE
-    public Question updateQuestion(UUID id, Question newData) {
+    public Question updateQuestion(UUID id, Question newData, UUID requestOwner) {
         return questionRepository.findById(id)
                 .map(existing -> {
+                    if (!existing.getAuthorId().equals(requestOwner))
+                        throw new RuntimeException("You are not authorized to update this question");
+
                     existing.setTitle(newData.getTitle());
                     existing.setBody(newData.getBody());
                     existing.setTags(newData.getTags());
@@ -85,8 +92,13 @@ public class QuestionService {
     }
 
     // DELETE
-    public void deleteQuestion(UUID id) {
+    public void deleteQuestion(UUID id, UUID requestOwner, String role) {
+        Question question = getQuestion(id);
+        if (!requestOwner.equals(question.getAuthorId()) && !role.contains("ADMIN"))
+            throw new RuntimeException("You are not authorized to delete this question");
+
         questionRepository.deleteById(id);
+        rabbitMQProducer.sendQuestionDeletedToAnswerService(id.toString());
     }
 
     @Transactional
@@ -123,7 +135,7 @@ public class QuestionService {
     }
 
     @Transactional
-    public List<Question> byAuthor(String authorId) {
+    public List<Question> byAuthor(UUID authorId) {
         if (!userClient.doesUserExist(authorId))
             throw new AuthorNotFoundException(authorId);
 
@@ -148,5 +160,12 @@ public class QuestionService {
         if (filter.startsWith("title:"))
             return titleFilter.filter(qs, filter.substring(6));
         return qs;
+    }
+
+    @Transactional
+    public Question incrementAnswerCount(UUID id, int count) {
+        Question question = getQuestion(id);
+        question.setAnswerCount(question.getAnswerCount() + count);
+        return questionRepository.save(question);
     }
 }

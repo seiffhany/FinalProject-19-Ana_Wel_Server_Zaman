@@ -30,28 +30,12 @@ services:
       MONGO_INITDB_DATABASE: appdb
     ports:
       - "27017:27017"
+
 #    volumes:
 #      - mongo_data:/data/db
 
-  redis:
-    image: redis:7.2-alpine
-    container_name: redis
-    command: ["redis-server", "--requirepass", "example"]
-    ports:
-      - "6380:6379"
 #    volumes:
 #      - redis_data:/data
-
-  rabbitmq:
-    image: rabbitmq:3.12-management
-    container_name: rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: root
-      RABBITMQ_DEFAULT_PASS: example
-    ports:
-      - "5673:5672"
-      - "15673:15672"
-#    volumes:
 #      - rabbitmq_data:/var/lib/rabbitmq
 #
 #volumes:

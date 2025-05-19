@@ -8,7 +8,7 @@ import com.example.notification_service.utils.NotificationMessage;
 public class Login extends Notification {
 
     public Login(String timestamp, String recipientEmail) {
-        super(timestamp, recipientEmail, NotificationMessage.NotificationType.EMAIL_NOTIFICATION);
+        super(timestamp, recipientEmail);
     }
 
     @Override

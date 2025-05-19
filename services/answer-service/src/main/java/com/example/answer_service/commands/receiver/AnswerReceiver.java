@@ -1,14 +1,14 @@
 package com.example.answer_service.commands.receiver;
 
-import com.example.answer_service.dto.CommandDto;
-import com.example.answer_service.model.Answer;
-import com.example.answer_service.repositories.AnswerRepository;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.UUID;
+import com.example.answer_service.dto.CommandDto;
+import com.example.answer_service.model.Answer;
+import com.example.answer_service.repositories.AnswerRepository;
 
 @Component
 public class AnswerReceiver {
@@ -89,8 +89,6 @@ public class AnswerReceiver {
         Answer answer = commandDto.getAnswer();
         UUID userId = commandDto.getLoggedInUser();
         if (!answer.isBestAnswer()) {
-//            UUID  questionID= answer.getQuestionID();
-//            if()
             answer.setBestAnswer(true);
             answerRepository.save(answer);
         } else {

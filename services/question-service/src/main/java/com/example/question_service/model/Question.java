@@ -23,7 +23,7 @@ public class Question {
 
     private String title;
     private String body;
-    private String authorId; // should reference user (id) through a relation?
+    private UUID authorId;
     private int voteCount;
 
     // relation with answers?
@@ -32,6 +32,7 @@ public class Question {
     private List<String> tags = new ArrayList<>();
 
     private int viewCount;
+    private int answerCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -59,12 +60,12 @@ public class Question {
         this.body = body;
     }
 
-    public String getAuthorId() {
+    public UUID getAuthorId() {
         return authorId;
     }
 
-    public void setAuthorId(String author) {
-        this.authorId = author;
+    public void setAuthorId(UUID authorId) {
+        this.authorId = authorId;
     }
 
     public int getVoteCount() {
@@ -89,6 +90,14 @@ public class Question {
 
     public void setViewCount(int viewCount) {
         this.viewCount = viewCount;
+    }
+
+    public int getAnswerCount() {
+        return answerCount;
+    }
+
+    public void setAnswerCount(int answerCount) {
+        this.answerCount = answerCount;
     }
 
     public LocalDateTime getCreatedAt() {

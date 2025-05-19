@@ -10,5 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, UUID> {
-    List<Question> findByAuthorId(String authorId);
+    List<Question> findByAuthorId(UUID authorId);
 }

@@ -29,26 +29,26 @@ services:
       - POSTGRES_PASSWORD=password
     ports:
       - "5434:5432"
-
-  redis_cache:
-    image: redis:latest
-    container_name: redisCache_user
-    ports:
-      - "6381:6379"
-
-  redisinsight:
-    image: redis/redisinsight:latest
-    container_name: redisInsight_user
-    ports:
-      - "5541:5540"
-    restart: always
-
-  rabbitmq:
-    image: rabbitmq:4.0-management
-    container_name: rabbitmq_user
-    ports:
-      - "5675:5672"
-      - "15675:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: root
-      RABBITMQ_DEFAULT_PASS: example
+#
+#  redis_cache:
+#    image: redis:latest
+#    container_name: redisCache_user
+#    ports:
+#      - "6381:6379"
+#
+#  redisinsight:
+#    image: redis/redisinsight:latest
+#    container_name: redisInsight_user
+#    ports:
+#      - "5541:5540"
+#    restart: always
+#
+#  rabbitmq:
+#    image: rabbitmq:4.0-management
+#    container_name: rabbitmq_user
+#    ports:
+#      - "5675:5672"
+#      - "15675:15672"
+#    environment:
+#      RABBITMQ_DEFAULT_USER: root
+#      RABBITMQ_DEFAULT_PASS: example

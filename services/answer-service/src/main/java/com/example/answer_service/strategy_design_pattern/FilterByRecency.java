@@ -1,9 +1,9 @@
 package com.example.answer_service.strategy_design_pattern;
 
-import com.example.answer_service.model.Answer;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.example.answer_service.model.Answer;
 
 public class FilterByRecency implements FilterStrategy {
 

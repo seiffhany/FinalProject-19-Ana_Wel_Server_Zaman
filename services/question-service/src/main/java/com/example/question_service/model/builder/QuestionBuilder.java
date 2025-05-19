@@ -1,9 +1,10 @@
 package com.example.question_service.model.builder;
 
-import com.example.question_service.model.Question;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
+
+import com.example.question_service.model.Question;
 
 public class QuestionBuilder {
     private Question question;
@@ -25,7 +26,7 @@ public class QuestionBuilder {
         return this;
     }
 
-    public QuestionBuilder author(String author) {
+    public QuestionBuilder author(UUID author) {
         question.setAuthorId(author);
         return this;
     }
@@ -38,5 +39,5 @@ public class QuestionBuilder {
     public Question build() {
         return question;
     }
-    
+
 }
