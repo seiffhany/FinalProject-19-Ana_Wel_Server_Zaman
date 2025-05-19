@@ -1,19 +1,19 @@
 services:
-  app:
-    build: .
-    ports:
-      - "8085:8085"
-    depends_on:
-      - mongodb
-    environment:
-      - SPRING_APPLICATION_NAME=answer-service
-      - SPRING_DATA_MONGODB_URI=mongodb://mongo:secret@mongodb:27017/miniappdb?authSource=admin
+#  app:
+#    build: .
+#    ports:
+#      - "8085:8085"
+#    depends_on:
+#      - mongodb
+#    environment:
+#      - SPRING_APPLICATION_NAME=answer-service
+#      - SPRING_DATA_MONGODB_URI=mongodb://mongo:secret@mongodb:27017/miniappdb?authSource=admin
 
   mongodb:
     image: mongo
     container_name: miniapp-mongo
     ports:
-      - "27017:27017"
+      - "27018:27017"
     environment:
       MONGO_INITDB_DATABASE: miniappdb
       MONGO_INITDB_ROOT_USERNAME: mongo
@@ -21,17 +21,27 @@ services:
     volumes:
       - mongodata:/data/db
 
-  mongo-express:
-    image: mongo-express
-    container_name: miniapp-mongo-express
-    ports:
-      - "8081:8081"
+#  mongo-express:
+#    image: mongo-express
+#    container_name: miniapp-mongo-express
+#    ports:
+#      - "8082:8081"
+#    environment:
+#      ME_CONFIG_MONGODB_ADMINUSERNAME: mongo
+#      ME_CONFIG_MONGODB_ADMINPASSWORD: secret
+#      ME_CONFIG_MONGODB_SERVER: mongodb
+#    depends_on:
+#      - mongodb
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: rabbitmq_answer_service
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: mongo
-      ME_CONFIG_MONGODB_ADMINPASSWORD: secret
-      ME_CONFIG_MONGODB_SERVER: mongodb
-    depends_on:
-      - mongodb
+      RABBITMQ_DEFAULT_USER: root
+      RABBITMQ_DEFAULT_PASS: example
+    ports:
+      - "5674:5672"
+      - "15674:15672"
 
 volumes:
   pgdata:
