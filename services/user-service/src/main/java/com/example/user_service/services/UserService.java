@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.user_service.factory.UserFactoryProvider;
 import com.example.user_service.models.Role;
 import com.example.user_service.models.User;
-import com.example.user_service.models.UserProfile;
 import com.example.user_service.repositories.FollowerRepository;
 import com.example.user_service.repositories.UserRepository;
 
@@ -98,6 +97,31 @@ public class UserService {
         // Delete the user
         userRepository.delete(user);
         return user;
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public User updateUser(UUID id, User user) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + user.getId()));
+
+        // Update the user details
+        existingUser.setEmail(user.getEmail());
+        existingUser.setUsername(user.getUsername());
+        existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        existingUser.setRole(user.getRole());
+        existingUser.setUpdatedAt(OffsetDateTime.now());
+        existingUser.setActive(user.isActive());
+
+        return userRepository.save(existingUser);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteAllUsers() {
+        List<User> users = userRepository.findAll();
+        userRepository.deleteAll(users);
+        log.info("All users deleted");
     }
 
     // private void updateFollowerCounts(User follower, User followed, boolean

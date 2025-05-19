@@ -4,12 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.user_service.models.User;
 
@@ -47,6 +42,17 @@ public class UserController {
     @PutMapping("/{id}/activate")
     public User activateUser(@PathVariable UUID id) {
         return userService.activateUser(id);
+    }
+
+    @PutMapping("/{id}")
+    public User updateUser(@PathVariable UUID id, @RequestBody User user) {
+        return userService.updateUser(id, user);
+    }
+
+    @DeleteMapping("/deleteAll")
+    public String deleteAllUsers() {
+        userService.deleteAllUsers();
+        return "All users are deleted";
     }
 
     @DeleteMapping("/{id}")
