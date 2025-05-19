@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apigateway-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: apigateway-service
+  template:
+    metadata:
+      labels:
+        app: apigateway-service
+    spec:
+      containers:
+        - name: apigateway-service
+          image: youssefaymana/apigateway
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: k8s
+            - name: SPRING_MAIN_WEB_APPLICATION_TYPE
+              value: reactive
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_0_ID
+              value: user-service
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_0_URI
+              value: http://user-service:8080
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0
+              value: Path=/api/users/**
+
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_1_ID
+              value: question-service
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_1_URI
+              value: http://question-service:8080
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_0
+              value: Path=/api/questions/**
+
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_2_ID
+              value: answer-service
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_2_URI
+              value: http://answer-service:8080
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_2_PREDICATES_0
+              value: Path=/api/answers/**
+
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_3_ID
+              value: notification-service
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_3_URI
+              value: http://notification-service:8080
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_3_PREDICATES_0
+              value: Path=/api/notifications/**
+
+
+            - name: SPRING_REDIS_HOST
+              value: redis
+            - name: SPRING_REDIS_PORT
+              value: "6379"

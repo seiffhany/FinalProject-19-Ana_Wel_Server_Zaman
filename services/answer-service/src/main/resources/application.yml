@@ -7,11 +7,11 @@ spring:
       uri: mongodb://mongo:secret@localhost:27018/miniappdb?authSource=admin
     #            uri: mongodb+srv://seifsabra2002:secretPass@account-service.anxb0r2.mongodb.net/answerService
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6382}
+      host: localhost
+      port: 6382
 
   rabbitmq:
-    host: ${RABBIT_HOST:localhost}
+    host: localhost
     port: 5672
     username: root
     password: example
