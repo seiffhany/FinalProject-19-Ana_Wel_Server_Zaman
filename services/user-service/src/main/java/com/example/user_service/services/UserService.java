@@ -62,18 +62,6 @@ public class UserService {
     }
 
     @Transactional
-    public UserProfile getUserProfile(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        UserProfile profile = user.getUserProfile();
-        if (profile == null) {
-            throw new IllegalStateException("User profile not found");
-        }
-
-        return profile;
-    }
-
-    @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public User deactivateUser(UUID id) {
         User user = userRepository.findById(id).get();

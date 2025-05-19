@@ -69,7 +69,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        /*
         // check if the token is blacklisted
         if (isTokenBlacklisted(jwt)) {
 
@@ -83,7 +82,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //            response.getWriter().write("Unauthorized: Token is blacklisted");
             return;
         }
-         */
 
         try {
             // Extract the username from the token

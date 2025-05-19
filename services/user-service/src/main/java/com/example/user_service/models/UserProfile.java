@@ -3,6 +3,7 @@ package com.example.user_service.models;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Formula;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -103,6 +104,7 @@ public class UserProfile {
     @MapsId
     @JoinColumn(name = "user_id")
     @JsonManagedReference
+    @JsonIgnore
     private User user;
 
     /**

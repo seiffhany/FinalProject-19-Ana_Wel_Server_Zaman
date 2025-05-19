@@ -10,8 +10,10 @@ import com.example.user_service.dto.QuestionDTO;
 import com.example.user_service.dto.UserProfileDTO;
 import com.example.user_service.models.Follower;
 import com.example.user_service.models.FollowerId;
+import com.example.user_service.rabbitmq.RabbitMQProducer;
 import com.example.user_service.repositories.FollowerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -28,11 +30,13 @@ import com.example.user_service.repositories.UserRepository;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
     private final UserRepository userRepository;
     private final FollowerRepository followerRepository;
+    private final RabbitMQProducer rabbitMQProducer;
 
     public List<UserProfile> getAllProfiles() {
         return userProfileRepository.findAll();
@@ -80,19 +84,32 @@ public class UserProfileService {
         return userProfileRepository.save(existingProfile);
     }
 
-    @Transactional
     @CacheEvict(value = RedisCacheConfig.USER_PROFILE_CACHE, key = "#userId")
+    @Transactional
     public void deleteProfile(UUID userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
         UserProfile profile = userProfileRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Profile not found for user id: " + userId));
+
+        user.setUserProfile(null);
+        userRepository.save(user);
+
         userProfileRepository.delete(profile);
     }
 
     public List<User> getUserFollowers(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+
         return userRepository.getUserFollowers(id);
     }
 
     public List<User> getUserFollowing(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
         return userRepository.getUserFollowing(id);
     }
 
@@ -115,6 +132,9 @@ public class UserProfileService {
 
         Follower followerRelation = new Follower(follower, userToFollow);
         followerRepository.save(followerRelation);
+
+        // produce follow event
+        rabbitMQProducer.sendFollowMessage(userToFollow.getEmail(), follower.getUsername());
 
         // Update follower counts in user profiles
         // updateFollowerCounts(follower, userToFollow, true);

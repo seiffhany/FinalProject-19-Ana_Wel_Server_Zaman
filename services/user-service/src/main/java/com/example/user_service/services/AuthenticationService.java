@@ -2,11 +2,10 @@ package com.example.user_service.services;
 
 import com.example.user_service.config.JwtTokenProvider;
 import com.example.user_service.dto.AuthenticationResponse;
-import com.example.user_service.factory.UserFactoryProvider;
 import com.example.user_service.models.Role;
 import com.example.user_service.models.User;
 import com.example.user_service.models.UserProfile;
-import com.example.user_service.repositories.UserProfileRepository;
+import com.example.user_service.rabbitmq.RabbitMQProducer;
 import com.example.user_service.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,15 +18,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -49,6 +43,7 @@ public class AuthenticationService {
     private final UserDetailsService userDetailsService;
     private final UserProfileService userProfileService;
     private final UserService userService;
+    private final RabbitMQProducer rabbitMQProducer;
 
     // Redis key for storing the token blacklist
     private static final String TOKEN_BLACKLIST_NAME = "blacklist:";
@@ -58,8 +53,8 @@ public class AuthenticationService {
      * It takes a username and password as input, authenticates the user,
      * and generates a JWT token for the user.
      *
-     * @param username The username of the user.
-     * @param password The password of the user.
+     * @param username  The username of the user.
+     * @param password  The password of the user.
      * @return An AuthenticationResponse object containing the generated JWT token.
      */
     @Transactional
@@ -88,6 +83,9 @@ public class AuthenticationService {
 
         // log the generated token
         log.debug("Generated JWT token: {}", jwtToken);
+
+        // send the login event to RabbitMQ
+        rabbitMQProducer.sendLoginNotification(user.getEmail(), "Lenovo Laptop IP53DDEJEDH343", "EGYPT-CAIRO-GUC");
 
         // return the authentication response with the token
         return AuthenticationResponse.builder()
@@ -130,6 +128,9 @@ public class AuthenticationService {
 
         // log the generated token
         log.debug("Generated JWT token: {}", jwtToken);
+
+        // send register event
+        rabbitMQProducer.sendUserRegistrationNotification(user.getEmail(), user.getEmail());
 
         // return the authentication response with the token
         return AuthenticationResponse.builder()

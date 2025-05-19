@@ -16,31 +16,31 @@ public class RabbitMQProducer {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    public void sendFollowMessage(String userId, String followerName) {
+    public void sendFollowMessage(String notificationReceiverEmail, String followerName) {
         NotificationMessage message = NotificationMessage.builder()
                 .category(NotificationMessage.NotificationCategory.USER_FOLLOW)
                 .type(NotificationMessage.NotificationType.IN_APP_NOTIFICATION)
-                .recipientEmails(Arrays.asList(userId))
+                .recipientEmails(Arrays.asList(notificationReceiverEmail))
                 .content(followerName)
                 .build();
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
     }
 
-    public void sendLoginNotification(String userId, String device, String location) {
+    public void sendLoginNotification(String notificationReceiverEmail, String device, String location) {
         NotificationMessage message = NotificationMessage.builder()
                 .category(NotificationCategory.USER_LOGIN)
                 .type(NotificationType.IN_APP_NOTIFICATION)
-                .recipientEmails(Arrays.asList(userId))
+                .recipientEmails(Arrays.asList(notificationReceiverEmail))
                 .content(device + "|" + location)
                 .build();
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
     }
 
-    public void sendUserRegistrationNotification(String userId, String email) {
+    public void sendUserRegistrationNotification(String notificationReceiverEmail, String email) {
         NotificationMessage message = NotificationMessage.builder()
                 .category(NotificationCategory.USER_REGISTRATION)
                 .type(NotificationType.IN_APP_NOTIFICATION)
-                .recipientEmails(Arrays.asList(userId))
+                .recipientEmails(Arrays.asList(notificationReceiverEmail))
                 .content(email)
                 .build();
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.NOTIFICATION_ROUTING_KEY, message);
