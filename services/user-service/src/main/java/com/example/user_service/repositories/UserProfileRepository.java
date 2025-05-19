@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.example.user_service.models.User;
 import com.example.user_service.models.UserProfile;
 
 /**
@@ -20,4 +21,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, UUID> 
 
   @Query("SELECT up FROM UserProfile up WHERE up.user.id = :userId")
   Optional<UserProfile> findByUserId(@Param("userId") UUID userId);
+
+  @Query("SELECT CASE WHEN COUNT(up) > 0 THEN true ELSE false END FROM UserProfile up WHERE up.user = :user")
+  boolean existsByUser(@Param("user") User user);
 }

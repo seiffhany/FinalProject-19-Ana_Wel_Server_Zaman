@@ -61,4 +61,7 @@ jwt:
 public:
   routes:
     paths:
-      - /questions
+      - /questions/bypass
+      - /users/auth
+      - /users/seed
+      - /users/profile

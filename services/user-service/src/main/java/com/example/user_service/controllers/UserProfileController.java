@@ -3,16 +3,24 @@ package com.example.user_service.controllers;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.example.user_service.dto.UserProfileDTO;
 import com.example.user_service.models.User;
-import com.example.user_service.services.PublicUserProfileService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import com.example.user_service.models.UserProfile;
+import com.example.user_service.services.PublicUserProfileService;
 import com.example.user_service.services.UserProfileService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("${api.base.url}/profile")
@@ -32,7 +40,6 @@ public class UserProfileController {
         return ResponseEntity.ok(publicUserProfileService.getFullProfileByUsername(username));
     }
 
-
     @GetMapping("/user/{userId}")
     public ResponseEntity<UserProfile> getProfileByUserId(@PathVariable UUID userId) {
         return ResponseEntity.ok(userProfileService.getProfileByUserId(userId));
@@ -45,7 +52,7 @@ public class UserProfileController {
         return ResponseEntity.ok(userProfileService.createProfile(userId, profile));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/user/{id}")
     public ResponseEntity<UserProfile> updateProfile(
             @PathVariable UUID id,
             @RequestBody UserProfile profile) {
@@ -58,20 +65,21 @@ public class UserProfileController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{id}/followers")
+    @GetMapping("/followers/{id}")
     public List<User> getUserFollowers(@PathVariable UUID id) {
         return userProfileService.getUserFollowers(id);
     }
 
-    @GetMapping("/{id}/following")
+    @GetMapping("/following/{id}")
     public List<User> getUserFollowing(@PathVariable UUID id) {
         return userProfileService.getUserFollowing(id);
     }
 
     @PutMapping("/follow/{followedId}")
     public ResponseEntity<String> followUser(@RequestHeader("userId") UUID id, @PathVariable UUID followedId) {
-        userProfileService.followUser(id, followedId);
-        return ResponseEntity.ok("Followed successfully");
+        // return the userId
+         userProfileService.followUser(id, followedId);
+         return ResponseEntity.ok("Followed successfully");
     }
 
     @PutMapping("/unfollow/{followedId}")

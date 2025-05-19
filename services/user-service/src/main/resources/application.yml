@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
 
 spring:
   application:
@@ -7,7 +7,7 @@ spring:
 
   # PostgreSQL Configuration
   datasource:
-    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/usersdb}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5434/usersdb}
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
@@ -38,11 +38,10 @@ spring:
     username: root
     password: example
 
-
 # API BASE URL
 api:
   base:
-    url: ${API_BASE_URL:/api/v1/users}
+    url: ${API_BASE_URL:/users}
 
 # JWT Configuration
 jwt:
@@ -51,7 +50,7 @@ jwt:
 
 answer:
   service:
-    url: http://localhost:8085
+    url: http://localhost:8083
 
 question:
   service:

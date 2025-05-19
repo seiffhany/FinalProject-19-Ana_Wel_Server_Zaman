@@ -63,9 +63,17 @@ public class DatabaseSeederController {
                                 .isActive(true)
                                 .build();
 
-                userRepository.saveAll(Arrays.asList(user1, user2, user3));
+                // Save users only if they don't exist and get the saved instances
+                List<User> usersToSave = Arrays.asList(user1, user2, user3);
+                for (User user : usersToSave) {
+                        if (userRepository.findByEmailOrUsername(user.getEmail(), user.getUsername()).isEmpty()) {
+                                user = userRepository.save(user);
+                        } else {
+                                user = userRepository.findByEmailOrUsername(user.getEmail(), user.getUsername()).get();
+                        }
+                }
 
-                // Create user profiles
+                // Create user profiles only for newly saved users
                 UserProfile profile1 = UserProfile.builder()
                                 .fullName("Alice Smith")
                                 .bio("Loves coding and cats.")
@@ -90,14 +98,26 @@ public class DatabaseSeederController {
                                 .user(user3)
                                 .build();
 
-                userProfileRepository.saveAll(Arrays.asList(profile1, profile2, profile3));
+                // Save profiles only if they don't exist
+                List<UserProfile> profilesToSave = Arrays.asList(profile1, profile2, profile3);
+                for (UserProfile profile : profilesToSave) {
+                        if (!userProfileRepository.existsByUser(profile.getUser())) {
+                                userProfileRepository.save(profile);
+                        }
+                }
 
-                // Create follow relationships
+                // Create follow relationships only if they don't exist
                 Follower f1 = new Follower(user1, user2); // Alice follows Bob
                 Follower f2 = new Follower(user2, user1); // Bob follows Alice
                 Follower f3 = new Follower(user2, user3); // Bob follows Charlie
 
-                followerRepository.saveAll(Arrays.asList(f1, f2, f3));
+                List<Follower> followersToSave = Arrays.asList(f1, f2, f3);
+                for (Follower follower : followersToSave) {
+                        if (!followerRepository.existsByFollowerAndFollowing(follower.getFollower(),
+                                        follower.getFollowed())) {
+                                followerRepository.save(follower);
+                        }
+                }
 
                 return ResponseEntity.ok("Database seeded successfully.");
         }

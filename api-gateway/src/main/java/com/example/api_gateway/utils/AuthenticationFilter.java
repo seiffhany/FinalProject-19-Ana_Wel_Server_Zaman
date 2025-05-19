@@ -36,7 +36,8 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getPath().toString();
 
-        if (publicRoutesConfig.getPaths().stream().anyMatch(path::contains)) {
+        if (publicRoutesConfig.getPaths().stream().anyMatch(path::contains) &&
+                !path.contains("/users/profile/follow") && !path.contains("/users/profile/unfollow")) {
             return chain.filter(exchange);
         }
 

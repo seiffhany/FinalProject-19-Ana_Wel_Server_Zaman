@@ -3,30 +3,24 @@ package com.example.user_service.services;
 import java.util.List;
 import java.util.UUID;
 
-import com.example.user_service.clients.AnswerServiceClient;
-import com.example.user_service.clients.QuestionServiceClient;
-import com.example.user_service.dto.AnswerDTO;
-import com.example.user_service.dto.QuestionDTO;
-import com.example.user_service.dto.UserProfileDTO;
-import com.example.user_service.models.Follower;
-import com.example.user_service.models.FollowerId;
-import com.example.user_service.rabbitmq.RabbitMQProducer;
-import com.example.user_service.repositories.FollowerRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.user_service.config.RedisCacheConfig;
+import com.example.user_service.models.Follower;
+import com.example.user_service.models.FollowerId;
 import com.example.user_service.models.User;
 import com.example.user_service.models.UserProfile;
+import com.example.user_service.rabbitmq.RabbitMQProducer;
+import com.example.user_service.repositories.FollowerRepository;
 import com.example.user_service.repositories.UserProfileRepository;
 import com.example.user_service.repositories.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +35,6 @@ public class UserProfileService {
     public List<UserProfile> getAllProfiles() {
         return userProfileRepository.findAll();
     }
-
 
     @Cacheable(value = RedisCacheConfig.USER_PROFILE_CACHE, key = "#userId")
     public UserProfile getProfileByUserId(UUID userId) {
@@ -159,6 +152,5 @@ public class UserProfileService {
         // Update follower counts in user profiles
         // updateFollowerCounts(follower, userToUnfollow, false);
     }
-
 
 }
