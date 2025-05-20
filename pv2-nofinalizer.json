@@ -1,0 +1,43 @@
+{
+  "apiVersion": "v1",
+  "kind": "PersistentVolume",
+  "metadata": {
+    "annotations": {
+      "hostPathProvisionerIdentity": "444df297-9b54-4b14-a16d-32a493495970",
+      "pv.kubernetes.io/provisioned-by": "k8s.io/minikube-hostpath"
+    },
+    "creationTimestamp": "2025-05-20T14:21:20Z",
+    "deletionGracePeriodSeconds": 0,
+    "deletionTimestamp": "2025-05-20T14:23:39Z",
+    "name": "pvc-e20ea320-ce92-4dc5-8313-296f643d9a48",
+    "resourceVersion": "42449",
+    "uid": "90f70a33-d315-40d8-9a00-125a61c9cccc"
+  },
+  "spec": {
+    "accessModes": [
+      "ReadWriteOnce"
+    ],
+    "capacity": {
+      "storage": "1Gi"
+    },
+    "claimRef": {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "name": "postgres-persistent-storage-postgres-question-0",
+      "namespace": "default",
+      "resourceVersion": "42270",
+      "uid": "e20ea320-ce92-4dc5-8313-296f643d9a48"
+    },
+    "hostPath": {
+      "path": "/tmp/hostpath-provisioner/default/postgres-persistent-storage-postgres-question-0",
+      "type": ""
+    },
+    "persistentVolumeReclaimPolicy": "Delete",
+    "storageClassName": "standard",
+    "volumeMode": "Filesystem"
+  },
+  "status": {
+    "lastPhaseTransitionTime": "2025-05-20T14:21:20Z",
+    "phase": "Bound"
+  }
+}

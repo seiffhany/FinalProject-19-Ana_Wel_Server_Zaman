@@ -56,9 +56,9 @@ public class QuestionController {
     }
 
     @GetMapping("/needs-authentication")
-    public ResponseEntity<String> hasAuthenticated() {
+    public ResponseEntity<String> hasAuthenticated(@RequestHeader("userId") UUID userId) {
         // rMqProducer.sendMessage("Hello, World");
-        return ResponseEntity.ok("This route has been reached after successful authentication!");
+        return ResponseEntity.ok("This route has been reached after successful authentication!\n User ID: " + userId);
     }
 
     @PostMapping

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: seiffhany/user-service:1.0
+          image: seiffhany/user-service:latest
           ports:
             - containerPort: 8080
           env:
@@ -51,8 +51,8 @@ spec:
                   name: rabbitmq-secret
                   key: RABBITMQ_DEFAULT_PASS
             - name: question.service.url
-              value: http://question-service:8080/questions
+              value: http://question-service:8080/
             - name: answer.service.url
-              value: http://answer-service:8080/answers
+              value: http://answer-service:8080/
             - name: api.base.url
               value: "/users"

@@ -97,18 +97,16 @@ public class QuestionService {
 
     // UPDATE
     public Question updateQuestion(UUID id, Question newData, UUID requestOwner) {
-        return questionRepository.findById(id)
-                .map(existing -> {
-                    if (!existing.getAuthorId().equals(requestOwner))
-                        throw new RuntimeException("You are not authorized to update this question");
-
-                    existing.setTitle(newData.getTitle());
-                    existing.setBody(newData.getBody());
-                    existing.setTags(newData.getTags());
-                    existing.setUpdatedAt(LocalDateTime.now());
-                    return questionRepository.save(existing);
-                })
-                .orElseThrow(() -> new RuntimeException("Question not found"));
+        Question question = getQuestion(id);
+        if (question == null)
+            throw new QuestionNotFoundException(id.toString());
+        if (!requestOwner.equals(question.getAuthorId()))
+            throw new RuntimeException("You are not authorized to update this question");
+        question.setTitle(newData.getTitle());
+        question.setBody(newData.getBody());
+        question.setTags(newData.getTags());
+        question.setUpdatedAt(LocalDateTime.now());
+        return questionRepository.save(question);
     }
 
     // DELETE

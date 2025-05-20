@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: question-service
-          image: seiffhany/question-service:1.0
+          image: seiffhany/question-service:latest
           ports:
             - containerPort: 8080
           env:

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: seiffhany/notification-service:1.0
+          image: seiffhany/notification-service:latest
           ports:
             - containerPort: 8080
           env:

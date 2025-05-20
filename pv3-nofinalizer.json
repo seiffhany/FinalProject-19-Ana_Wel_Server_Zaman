@@ -1,0 +1,43 @@
+{
+  "apiVersion": "v1",
+  "kind": "PersistentVolume",
+  "metadata": {
+    "annotations": {
+      "hostPathProvisionerIdentity": "444df297-9b54-4b14-a16d-32a493495970",
+      "pv.kubernetes.io/provisioned-by": "k8s.io/minikube-hostpath"
+    },
+    "creationTimestamp": "2025-05-20T14:21:20Z",
+    "deletionGracePeriodSeconds": 0,
+    "deletionTimestamp": "2025-05-20T14:23:39Z",
+    "name": "pvc-f1d4bc26-9464-4ad8-8b63-189d95e740b6",
+    "resourceVersion": "42451",
+    "uid": "901701fa-5116-43b6-91fc-033491f3fbc6"
+  },
+  "spec": {
+    "accessModes": [
+      "ReadWriteOnce"
+    ],
+    "capacity": {
+      "storage": "1Gi"
+    },
+    "claimRef": {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "name": "mongo-persistent-volume-mongo-answer-0",
+      "namespace": "default",
+      "resourceVersion": "42220",
+      "uid": "f1d4bc26-9464-4ad8-8b63-189d95e740b6"
+    },
+    "hostPath": {
+      "path": "/tmp/hostpath-provisioner/default/mongo-persistent-volume-mongo-answer-0",
+      "type": ""
+    },
+    "persistentVolumeReclaimPolicy": "Delete",
+    "storageClassName": "standard",
+    "volumeMode": "Filesystem"
+  },
+  "status": {
+    "lastPhaseTransitionTime": "2025-05-20T14:21:20Z",
+    "phase": "Bound"
+  }
+}

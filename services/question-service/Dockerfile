@@ -6,4 +6,4 @@ COPY ./target/*.jar target/app.jar
 
 EXPOSE 8080
 
-CMD ["java","-jar","target/.jar"]
+CMD ["java","-jar","target/app.jar"]
