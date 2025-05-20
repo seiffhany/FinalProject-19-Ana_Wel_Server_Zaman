@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: answer-service
-          image: shadyhani02/answer-service
+          image: seifhany/answer-service
           ports:
             - containerPort: 8080
           env:
