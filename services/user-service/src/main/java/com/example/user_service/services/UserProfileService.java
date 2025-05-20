@@ -1,6 +1,7 @@
 package com.example.user_service.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.cache.annotation.CacheEvict;
@@ -151,6 +152,10 @@ public class UserProfileService {
 
         // Update follower counts in user profiles
         // updateFollowerCounts(follower, userToUnfollow, false);
+    }
+
+    public Optional<User> getUserById(UUID id) {
+        return userRepository.findById(id);
     }
 
 }

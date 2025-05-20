@@ -152,7 +152,7 @@ public class QuestionService {
     @Transactional
     public Question downvote(UUID id, String downvoterUsername) {
         Question q = getQuestion(id);
-        q.setVoteCount(q.getVoteCount() - 1);
+        q.setVoteCount(Math.max(0, q.getVoteCount() - 1));
         String authorId = q.getAuthorId().toString();
         UserDTO author = userClient.getUserById(UUID.fromString(authorId));
         if (author != null)

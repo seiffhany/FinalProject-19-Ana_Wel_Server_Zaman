@@ -3,6 +3,7 @@ package com.example.user_service.controllers;
 import java.util.List;
 import java.util.UUID;
 
+import com.example.user_service.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -86,5 +87,11 @@ public class UserProfileController {
     public ResponseEntity<String> unfollowUser(@RequestHeader("userId") UUID id, @PathVariable UUID followedId) {
         userProfileService.unFollowUser(id, followedId);
         return ResponseEntity.ok("Unfollowed successfully");
+    }
+
+    @GetMapping("/communication/{id}")
+    public User getUserById(@PathVariable UUID id) {
+        System.out.println("Entered from question service");
+        return userProfileService.getUserById(id).orElse(null);
     }
 }

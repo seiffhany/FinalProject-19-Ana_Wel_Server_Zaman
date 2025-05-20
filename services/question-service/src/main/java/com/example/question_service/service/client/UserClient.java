@@ -11,7 +11,7 @@ import com.example.question_service.dto.UserDTO;
 
 @FeignClient(name = "user-service", url = "${user.service.url}")
 public interface UserClient {
-    @GetMapping("/{userId}")
+    @GetMapping("/profile/communication/{userId}")
     UserDTO getUserById(@PathVariable("userId") UUID userId);
 
     @GetMapping("/profile/followers/{userId}")

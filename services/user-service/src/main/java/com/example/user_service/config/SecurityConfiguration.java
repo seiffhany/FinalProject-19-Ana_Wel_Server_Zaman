@@ -49,7 +49,8 @@ public class SecurityConfiguration {
                                                 apiBaseUrl + "/auth/login", // Permit login
                                                 apiBaseUrl + "/auth/register", // Permit authenticate endpoint
                                                 apiBaseUrl + "/seed/**", // Permit seed data
-                                                apiBaseUrl + "/profile/**" // Permit profile endpoints
+                                                apiBaseUrl + "/profile/**", // Permit profile endpoints
+                                                apiBaseUrl + "/profile/communication/**"
                                 )
                                                 .permitAll() // Allow all requests to the auth endpoint
                                                 .anyRequest()
