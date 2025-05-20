@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: answer-service
-          image: seifhany/answer-service
+          image: seiffhany/answer-service:1.0
           ports:
             - containerPort: 8080
           env:
@@ -45,3 +45,5 @@ spec:
               value: redis
             - name: SPRING_DATA_REDIS_PORT
               value: "6379"
+            - name: question.service.url
+              value: http://question-service:8080

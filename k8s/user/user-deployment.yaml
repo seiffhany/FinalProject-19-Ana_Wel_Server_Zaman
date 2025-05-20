@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: seiffhany/user-service:latest
+          image: seiffhany/user-service:1.0
           ports:
             - containerPort: 8080
           env:
@@ -54,3 +54,5 @@ spec:
               value: http://question-service:8080/questions
             - name: answer.service.url
               value: http://answer-service:8080/answers
+            - name: api.base.url
+              value: "/users"
