@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: apigateway-service
-          image: seiffhany/api-gateway
+          image: seiffhany/api-gateway:1.0
           ports:
             - containerPort: 8080
           env:
@@ -49,7 +49,6 @@ spec:
               value: http://notification-service:8080
             - name: SPRING_CLOUD_GATEWAY_ROUTES_3_PREDICATES_0
               value: Path=/api/notifications/**
-
 
             - name: SPRING_REDIS_HOST
               value: redis

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: seifhossam2002/notification-service
+          image: seiffhany/notification-service:1.0
           ports:
             - containerPort: 8080
           env:
@@ -23,7 +23,7 @@ spec:
             - name: SPRING_DATA_MONGODB_URI
               valueFrom:
                 secretKeyRef:
-                  name: mongo-secret
+                  name: mongo-secret-notification
                   key: URI
             - name: SPRING_DATA_MONGODB_DATABASE
               value: notification_db

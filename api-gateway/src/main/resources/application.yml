@@ -46,7 +46,7 @@ spring:
     kubernetes:
       discovery:
         enabled: true
-        namespace: qa-platform
+        namespace:
         all-namespaces: false
         primary-port-name: http
 

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: user-service
-  namespace: qa-platform
+  namespace:
 spec:
   replicas: 1
   selector:
@@ -26,7 +26,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: question-service
-  namespace: qa-platform
+  namespace:
 spec:
   replicas: 1
   selector:
@@ -50,7 +50,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: answer-service
-  namespace: qa-platform
+  namespace:
 spec:
   replicas: 1
   selector:
@@ -74,7 +74,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: notification-service
-  namespace: qa-platform
+  namespace:
 spec:
   replicas: 1
   selector:
@@ -98,7 +98,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-gateway
-  namespace: qa-platform
+  namespace:
 spec:
   replicas: 1
   selector:
