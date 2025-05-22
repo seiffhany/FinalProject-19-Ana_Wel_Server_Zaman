@@ -2,7 +2,9 @@ package com.example.question_service.model;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import jakarta.persistence.ElementCollection;
@@ -26,6 +28,12 @@ public class Question {
     private UUID authorId;
     private int voteCount;
 
+    @ElementCollection
+    private Set<UUID> upVoters = new HashSet<>();
+
+    @ElementCollection
+    private Set<UUID> downVoters = new HashSet<>();
+
     // relation with answers?
 
     @ElementCollection
@@ -35,6 +43,27 @@ public class Question {
     private int answerCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Helper methods for vote management
+    public void addUpVoter(UUID userId) {
+        this.upVoters.add(userId);
+        this.voteCount = this.upVoters.size() - this.downVoters.size();
+    }
+
+    public void addDownVoter(UUID userId) {
+        this.downVoters.add(userId);
+        this.voteCount = this.upVoters.size() - this.downVoters.size();
+    }
+
+    public void removeUpVoter(UUID userId) {
+        this.upVoters.remove(userId);
+        this.voteCount = this.upVoters.size() - this.downVoters.size();
+    }
+
+    public void removeDownVoter(UUID userId) {
+        this.downVoters.remove(userId);
+        this.voteCount = this.upVoters.size() - this.downVoters.size();
+    }
 
     public UUID getId() {
         return id;

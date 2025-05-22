@@ -109,9 +109,10 @@ public class QuestionController {
     }
 
     @PostMapping("/upvote/{id}")
-    public ResponseEntity<?> upvote(@PathVariable UUID id, @RequestHeader("username") String upvoterUsername) {
+    public ResponseEntity<?> upvote(@PathVariable UUID id, @RequestHeader("userId") UUID upvoterId,
+            @RequestHeader("username") String upvoterUsername) {
         try {
-            return ResponseEntity.ok(questionService.upvote(id, upvoterUsername));
+            return ResponseEntity.ok(questionService.upvote(id, upvoterId, upvoterUsername));
         } catch (QuestionNotFoundException e) {
             return err(HttpStatus.NOT_FOUND, e);
         } catch (Exception e) {
@@ -120,9 +121,10 @@ public class QuestionController {
     }
 
     @PostMapping("/downvote/{id}")
-    public ResponseEntity<?> downvote(@PathVariable UUID id, @RequestHeader("username") String downvoterUsername) {
+    public ResponseEntity<?> downvote(@PathVariable UUID id, @RequestHeader("userId") UUID downvoterId,
+            @RequestHeader("username") String downvoterUsername) {
         try {
-            return ResponseEntity.ok(questionService.downvote(id, downvoterUsername));
+            return ResponseEntity.ok(questionService.downvote(id, downvoterId, downvoterUsername));
         } catch (QuestionNotFoundException e) {
             return err(HttpStatus.NOT_FOUND, e);
         } catch (Exception e) {

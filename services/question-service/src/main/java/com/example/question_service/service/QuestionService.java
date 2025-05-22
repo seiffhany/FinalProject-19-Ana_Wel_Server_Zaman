@@ -139,9 +139,21 @@ public class QuestionService {
     }
 
     @Transactional
-    public Question upvote(UUID id, String upvoterUsername) {
+    public Question upvote(UUID id, UUID upvoterId, String upvoterUsername) {
         Question q = getQuestion(id);
-        q.setVoteCount(q.getVoteCount() + 1);
+
+        // Check if user has already upvoted
+        if (q.getUpVoters().contains(upvoterId)) {
+            // User has already upvoted, so remove the upvote
+            q.removeUpVoter(upvoterId);
+        } else {
+            // If user has downvoted, remove the downvote first
+            if (q.getDownVoters().contains(upvoterId)) {
+                q.removeDownVoter(upvoterId);
+            }
+            q.addUpVoter(upvoterId);
+        }
+
         String authorId = q.getAuthorId().toString();
         UserDTO author = userClient.getUserById(UUID.fromString(authorId));
         if (author != null)
@@ -150,9 +162,21 @@ public class QuestionService {
     }
 
     @Transactional
-    public Question downvote(UUID id, String downvoterUsername) {
+    public Question downvote(UUID id, UUID downvoterId, String downvoterUsername) {
         Question q = getQuestion(id);
-        q.setVoteCount(Math.max(0, q.getVoteCount() - 1));
+
+        // Check if user has already downvoted
+        if (q.getDownVoters().contains(downvoterId)) {
+            // User has already downvoted, so remove the downvote
+            q.removeDownVoter(downvoterId);
+        } else {
+            // If user has upvoted, remove the upvote first
+            if (q.getUpVoters().contains(downvoterId)) {
+                q.removeUpVoter(downvoterId);
+            }
+            q.addDownVoter(downvoterId);
+        }
+
         String authorId = q.getAuthorId().toString();
         UserDTO author = userClient.getUserById(UUID.fromString(authorId));
         if (author != null)

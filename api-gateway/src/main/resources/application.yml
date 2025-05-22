@@ -62,6 +62,8 @@ public:
   routes:
     paths:
       - /questions/bypass
+      - /questions/search
+      - /questions/author
       - /users/auth
       - /users/seed
       - /users/profile

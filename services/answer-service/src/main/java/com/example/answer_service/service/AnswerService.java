@@ -21,6 +21,7 @@ import com.example.answer_service.commands.invoker.AnswerInvoker;
 import com.example.answer_service.commands.receiver.AnswerReceiver;
 import com.example.answer_service.dto.CommandDto;
 import com.example.answer_service.dto.DeleteAnswerResponseDTO;
+import com.example.answer_service.dto.QuestionDTO;
 import com.example.answer_service.model.Answer;
 import com.example.answer_service.rabbitmq.RabbitMQProducer;
 import com.example.answer_service.repositories.AnswerRepository;
@@ -129,7 +130,8 @@ public class AnswerService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Answer not found");
         }
 
-        if (!loggedInUser.equals(questionClient.getQuestionById(answer.getQuestionID()))) {
+        QuestionDTO question = questionClient.getQuestionById(answer.getQuestionID());
+        if (!loggedInUser.equals(question.getAuthorId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the author of this answer");
         }
 
@@ -255,10 +257,13 @@ public class AnswerService {
         }
     }
 
-    public Answer updateAnswer(UUID answerId, String content) {
+    public Answer updateAnswer(UUID answerId, String content, UUID userId) {
         Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
         if (optionalAnswer.isPresent()) {
             Answer answer = optionalAnswer.get();
+            if (!answer.getUserId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the author of this answer");
+            }
             answer.setContent(content);
             answer.setUpdatedAt(java.time.LocalDateTime.now());
             return answerRepository.save(answer);
@@ -267,15 +272,18 @@ public class AnswerService {
         }
     }
 
-    public DeleteAnswerResponseDTO deleteAnswer(UUID answerId, boolean isRoot) {
+    public DeleteAnswerResponseDTO deleteAnswer(UUID answerId, boolean isRoot, UUID userId) {
         Optional<Answer> optionalAnswer = answerRepository.findById(answerId);
         if (optionalAnswer.isPresent()) {
             Answer answer = optionalAnswer.get();
+            if (isRoot && !answer.getUserId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the author of this answer");
+            }
             List<Answer> childAnswers = answerRepository.findByParentID(answer.getId());
-            int totalDeleted = 1; // Count the current answer
+            int totalDeleted = 1;
 
             for (Answer child : childAnswers) {
-                DeleteAnswerResponseDTO childResult = deleteAnswer(child.getId(), false);
+                DeleteAnswerResponseDTO childResult = deleteAnswer(child.getId(), false, userId);
                 totalDeleted += childResult.getTotalAnswersDeleted();
             }
 
@@ -325,7 +333,9 @@ public class AnswerService {
             if (answers.isEmpty() || answers == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No  question with this  id: " + questionId);
             }
+            int totalDeleted = answers.size();
             answerRepository.deleteAll(answers);
+            sendAnswerToQuestionService(questionId, totalDeleted * -1);
         } catch (ResourceNotFoundException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No question found with id: " + questionId);
         } catch (Exception ex) {

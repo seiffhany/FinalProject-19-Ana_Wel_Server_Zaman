@@ -30,8 +30,8 @@ public class NotificationController {
     }
 
     @PutMapping("/read/{id}")
-    public void markAsRead(@PathVariable String id) {
-        notificationService.markAsRead(id);
+    public void markAsRead(@PathVariable String id, @RequestHeader("userEmail") String recipientEmail) {
+        notificationService.markAsRead(id, recipientEmail);
     }
 
     @GetMapping("/archived")
@@ -40,8 +40,8 @@ public class NotificationController {
     }
 
     @PutMapping("/archive/{id}")
-    public void archiveNotification(@PathVariable String id) {
-        notificationService.archiveNotification(id);
+    public void archiveNotification(@PathVariable String id, @RequestHeader("userEmail") String recipientEmail) {
+        notificationService.archiveNotification(id, recipientEmail);
     }
 
 }

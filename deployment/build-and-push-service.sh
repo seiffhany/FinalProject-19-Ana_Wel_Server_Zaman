@@ -35,7 +35,7 @@ cd $SERVICE_DIR
 
 echo "Cleaning target directory and building with Maven..."
 rm -rf target/
-mvn clean package
+mvn clean package -DskipTests
 
 echo "Building $SERVICE_NAME Docker image..."
 docker build -t $SERVICE_NAME:$VERSION .

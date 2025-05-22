@@ -101,9 +101,10 @@ public class AnswerController {
     }
 
     @PutMapping("/{answerId}")
-    public ResponseEntity<?> updateAnswer(@PathVariable UUID answerId, @RequestBody String content) {
+    public ResponseEntity<?> updateAnswer(@PathVariable UUID answerId, @RequestBody String content,
+            @RequestHeader("userId") UUID userId) {
         try {
-            Answer updatedAnswer = answerService.updateAnswer(answerId, content);
+            Answer updatedAnswer = answerService.updateAnswer(answerId, content, userId);
             return ResponseEntity.ok(updatedAnswer);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -114,9 +115,9 @@ public class AnswerController {
     }
 
     @DeleteMapping("/{answerId}")
-    public ResponseEntity<String> deleteAnswer(@PathVariable UUID answerId) {
+    public ResponseEntity<String> deleteAnswer(@PathVariable UUID answerId, @RequestHeader("userId") UUID userId) {
         try {
-            answerService.deleteAnswer(answerId, true);
+            answerService.deleteAnswer(answerId, true, userId);
             return ResponseEntity.ok("Answer and its children deleted successfully!");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

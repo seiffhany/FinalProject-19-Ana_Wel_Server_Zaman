@@ -34,16 +34,22 @@ public class NotificationService {
                 notificationRepository.findAllByRecipientEmailAndIsArchivedIsFalseAndIsReadIsFalse(recipientEmail));
     }
 
-    public void markAsRead(String id) {
+    public void markAsRead(String id, String recipientEmail) {
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new NotificationNotFoundException(id));
+        if (!recipientEmail.equals(notification.getRecipientEmail())) {
+            throw new RuntimeException("You are not authorized to read this notification");
+        }
         notification.setRead(true);
         notificationRepository.save(notification);
     }
 
-    public void archiveNotification(String id) {
+    public void archiveNotification(String id, String recipientEmail) {
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new NotificationNotFoundException(id));
+        if (!recipientEmail.equals(notification.getRecipientEmail())) {
+            throw new RuntimeException("You are not authorized to archive this notification");
+        }
         notification.setArchived(true);
         notificationRepository.save(notification);
     }

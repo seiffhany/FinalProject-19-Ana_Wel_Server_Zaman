@@ -16,4 +16,7 @@ public interface UserClient {
 
     @GetMapping("/profile/followers/{userId}")
     List<UserDTO> getUserFollowers(@PathVariable("userId") UUID userId);
+
+    @GetMapping("/profile/username/{username}")
+    UserDTO getUserByUsername(@PathVariable("username") String username);
 }

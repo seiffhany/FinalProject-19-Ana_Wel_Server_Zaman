@@ -29,10 +29,14 @@ spec:
             - name: PUBLIC_ROUTES_PATHS_0
               value: "/questions/bypass"
             - name: PUBLIC_ROUTES_PATHS_1
-              value: "/users/auth"
+              value: "/questions/search"
             - name: PUBLIC_ROUTES_PATHS_2
-              value: "/users/seed"
+              value: "/questions/author"
             - name: PUBLIC_ROUTES_PATHS_3
+              value: "/users/auth"
+            - name: PUBLIC_ROUTES_PATHS_4
+              value: "/users/seed"
+            - name: PUBLIC_ROUTES_PATHS_5
               value: "/users/profile"
             - name: SPRING_CLOUD_GATEWAY_ROUTES_0_ID
               value: user-service
